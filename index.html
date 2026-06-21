@@ -1,0 +1,2789 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#06070d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shadow System">
+<title>SHADOW SYSTEM — ARISE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<style>
+:root {
+  --bg:#06070d;--panel:#0b0d17;--panel2:#0f1120;--border:#1a2240;
+  --accent:#4a6cf7;--accent2:#7b5cf5;--gold:#c9a84c;
+  --text:#c8d4f0;--muted:#4a5a7a;--success:#2adb82;
+  --danger:#f74a6c;--warn:#f7a84a;--purple:#b04af7;
+  --mono:'Share Tech Mono',monospace;--orb:'Orbitron',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg)}
+body{font-family:var(--mono);color:var(--text);display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;transition:background .5s}
+body.penalty-mode{background:#1a0008!important;animation:penaltyFlash 1s 3}
+@keyframes penaltyFlash{0%,100%{background:#1a0008}50%{background:#3a0010}}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(74,108,247,0.012) 2px,rgba(74,108,247,0.012) 4px);pointer-events:none;z-index:9999}
+body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(247,74,108,0.03) 2px,rgba(247,74,108,0.03) 4px)}
+
+/* ── TOPBAR ─────────────────────────────────────────── */
+.topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:7px 14px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;z-index:50}
+.tl{font-size:9px;color:var(--muted);letter-spacing:.12em;font-family:var(--orb)}
+.tr{font-size:9px;color:var(--success);letter-spacing:.08em;display:flex;align-items:center;gap:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── HERO (bigger profile frame) ────────────────────── */
+.hero{background:linear-gradient(135deg,var(--panel) 0%,#0d1028 100%);border-bottom:1px solid var(--border);padding:14px 14px;display:grid;grid-template-columns:85px 1fr 70px;gap:12px;align-items:center;flex-shrink:0;position:relative;overflow:visible}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(74,108,247,0.07) 0%,transparent 60%);pointer-events:none}
+.av{width:90px;height:90px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;position:relative;background:#080c1a;flex-shrink:0;clip-path:polygon(14px 0%,100% 0%,calc(100% - 14px) 100%,0% 100%)}
+.av i{font-size:40px;color:var(--accent)}
+.rpip{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:13px;background:var(--accent);color:#fff;padding:3px 16px;letter-spacing:.12em;font-family:var(--orb);font-weight:700;white-space:nowrap;z-index:10;line-height:1}
+.av-wrap{position:relative;display:flex;justify-content:center;align-items:center;flex-shrink:0;width:90px;height:110px}
+.hname{font-size:14px;color:#fff;letter-spacing:.08em;margin-bottom:2px;cursor:pointer;font-family:var(--orb);font-weight:700}
+.hname:hover{color:var(--accent)}
+.htitle{font-size:9px;color:var(--accent);letter-spacing:.1em;margin-bottom:2px}
+.hequipped-title{font-size:8px;color:var(--gold);letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.xrow{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px}
+.xtrack{height:5px;background:#0d1028;border:1px solid var(--border);overflow:hidden}
+.xfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s cubic-bezier(.25,.8,.25,1)}
+.lvbox{text-align:right}
+.lvn{font-size:30px;color:#fff;line-height:1;font-family:var(--orb);font-weight:900}
+.lvs{font-size:8px;color:var(--muted);letter-spacing:.1em}
+.rbtn{margin-top:5px;font-size:8px;padding:3px 7px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--mono);letter-spacing:.07em;width:100%}
+.rbtn:active{border-color:var(--accent);color:var(--accent)}
+
+/* ── STAT MINI ───────────────────────────────────────── */
+.stat-mini{background:var(--panel);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;gap:10px;overflow-x:auto;flex-shrink:0}
+.sm-item{display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:40px}
+.sm-lbl{font-size:7px;color:var(--muted);letter-spacing:.08em;margin-bottom:2px}
+.sm-val{font-size:12px;font-family:var(--orb);font-weight:700}
+.sm-divider{width:1px;background:var(--border);flex-shrink:0}
+
+/* ── STREAK BAR ──────────────────────────────────────── */
+.streak-bar{background:var(--panel2);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;overflow-x:auto}
+.si{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.si-lbl{font-size:7px;color:var(--muted);letter-spacing:.07em}
+.si-val{font-size:13px;color:var(--warn)}
+.si-val.g{color:var(--success)}
+.sdiv{width:1px;height:20px;background:var(--border);flex-shrink:0}
+
+/* ── NAV ─────────────────────────────────────────────── */
+.nav{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;position:sticky;top:38px;z-index:40}
+.nb{flex:1;min-width:0;padding:8px 2px;font-size:7.5px;background:transparent;border:none;border-right:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:.04em;white-space:nowrap}
+.nb:last-child{border-right:none}
+.nb.active{color:var(--accent);border-bottom:2px solid var(--accent);background:rgba(74,108,247,0.06)}
+.nb-alert{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--danger);margin-left:3px;vertical-align:middle}
+
+/* ── BODY ────────────────────────────────────────────── */
+.body{padding:10px 12px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* ── SECTION HEADER ──────────────────────────────────── */
+.sec{font-size:8px;color:var(--muted);letter-spacing:.15em;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec.accent{color:var(--accent)}
+
+/* ── PENALTY ─────────────────────────────────────────── */
+.penalty-overlay{display:none;position:fixed;inset:0;background:rgba(30,0,8,.97);z-index:500;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.penalty-overlay.active{display:flex}
+.penalty-title{font-family:var(--orb);font-size:20px;color:var(--danger);letter-spacing:.12em;margin-bottom:16px;animation:penaltyGlow 1.5s infinite}
+@keyframes penaltyGlow{0%,100%{text-shadow:0 0 10px #f74a6c}50%{text-shadow:0 0 30px #f74a6c,0 0 60px #f74a6c}}
+.penalty-sys{font-size:11px;color:var(--muted);letter-spacing:.08em;margin-bottom:20px;line-height:2.2}
+.penalty-tasks{background:#0d0005;border:1px solid var(--danger);padding:16px;margin-bottom:20px;width:100%;max-width:320px}
+.penalty-tasks .pt-title{font-size:9px;color:var(--danger);letter-spacing:.15em;margin-bottom:12px}
+.penalty-tasks .pt-item{font-size:12px;color:#fff;letter-spacing:.06em;padding:6px 0;border-bottom:1px solid #2a0010;display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--orb)}
+.penalty-tasks .pt-item.done{color:var(--success);text-decoration:line-through;opacity:.5}
+.penalty-or{font-size:9px;color:var(--muted);margin:8px 0;letter-spacing:.12em}
+.penalty-lose{font-size:9px;color:var(--danger);letter-spacing:.08em;margin-bottom:16px}
+.penalty-timer{font-size:18px;color:var(--warn);font-family:var(--orb);font-weight:900;margin-bottom:16px}
+.penalty-close{padding:10px 28px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.1em}
+
+/* ── AUTH OVERLAY ────────────────────────────────────── */
+.auth-overlay{display:flex;position:fixed;inset:0;background:#06070d;z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.auth-overlay.hidden{display:none}
+.auth-box{width:100%;max-width:320px;background:linear-gradient(135deg,var(--panel) 0%,#0d1028 100%);border:1px solid var(--border);padding:26px 22px;position:relative;overflow:hidden}
+.auth-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(74,108,247,0.1) 0%,transparent 60%);pointer-events:none}
+.auth-logo{font-family:var(--orb);font-size:18px;font-weight:900;color:#fff;letter-spacing:.1em;margin-bottom:4px;position:relative}
+.auth-sub{font-size:8px;color:var(--accent);letter-spacing:.12em;margin-bottom:20px;position:relative}
+.auth-tabs{display:flex;border:1px solid var(--border);margin-bottom:18px;position:relative}
+.auth-tab{flex:1;padding:9px 0;background:transparent;border:none;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:.1em;cursor:pointer}
+.auth-tab.active{color:var(--accent);background:rgba(74,108,247,.08);border-bottom:2px solid var(--accent)}
+.auth-form{display:flex;flex-direction:column;text-align:left;position:relative}
+.auth-label{font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:5px;margin-top:10px}
+.auth-input{background:#080c1a;border:1px solid var(--border);color:var(--text);padding:10px 11px;font-family:var(--mono);font-size:11px;letter-spacing:.03em;width:100%}
+.auth-input:focus{outline:none;border-color:var(--accent)}
+.auth-error{font-size:9px;color:var(--danger);letter-spacing:.03em;margin-top:10px;min-height:11px;line-height:1.6}
+.auth-btn{margin-top:14px;padding:11px;border:1px solid var(--accent);background:rgba(74,108,247,.08);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer}
+.auth-btn:active{background:rgba(74,108,247,.2)}
+.auth-note{font-size:8px;color:var(--muted);letter-spacing:.02em;margin-top:18px;line-height:1.7;position:relative}
+
+/* ── RANK-UP CUTSCENE ────────────────────────────────── */
+.rankup-overlay{display:none;position:fixed;inset:0;background:#000;z-index:800;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.rankup-overlay.active{display:flex}
+.rankup-bg{position:absolute;inset:0;overflow:hidden}
+.rankup-particle{position:absolute;width:2px;height:2px;background:var(--accent);border-radius:50%;animation:rparticle 3s ease-in-out infinite}
+@keyframes rparticle{0%{transform:translateY(100vh) scale(0);opacity:0}50%{opacity:1}100%{transform:translateY(-100px) scale(1.5);opacity:0}}
+.rankup-ring{width:160px;height:160px;border:3px solid var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:24px;position:relative;animation:ringPulse 1s ease-in-out infinite alternate}
+@keyframes ringPulse{0%{box-shadow:0 0 20px var(--accent),inset 0 0 20px rgba(74,108,247,0.2)}100%{box-shadow:0 0 60px var(--accent),inset 0 0 40px rgba(74,108,247,0.4)}}
+.rankup-icon{font-size:64px;animation:iconPop .6s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes iconPop{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.rankup-rank{font-family:var(--orb);font-size:48px;font-weight:900;margin-bottom:8px;animation:rankSlide .5s .3s both}
+@keyframes rankSlide{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.rankup-title{font-size:14px;letter-spacing:.2em;margin-bottom:6px;animation:rankSlide .5s .5s both}
+.rankup-label{font-size:10px;color:var(--muted);letter-spacing:.15em;margin-bottom:32px;animation:rankSlide .5s .7s both}
+.rankup-close{padding:12px 36px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-family:var(--mono);font-size:10px;cursor:pointer;letter-spacing:.1em;animation:rankSlide .5s .9s both}
+
+/* ── TITLE UNLOCK CUTSCENE ───────────────────────────── */
+.title-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:700;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+.title-overlay.active{display:flex}
+.title-unlock-label{font-size:9px;color:var(--muted);letter-spacing:.2em;margin-bottom:16px;animation:fadeUp .5s both}
+.title-unlock-icon{font-size:52px;margin-bottom:12px;animation:popIn .6s .1s both}
+@keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.title-unlock-name{font-family:var(--orb);font-size:22px;font-weight:900;color:var(--gold);margin-bottom:8px;animation:fadeUp .5s .2s both}
+@keyframes fadeUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.title-unlock-desc{font-size:10px;color:var(--muted);margin-bottom:28px;animation:fadeUp .5s .3s both;line-height:1.7}
+.title-unlock-close{padding:10px 28px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.1em;animation:fadeUp .5s .5s both}
+
+/* ── NPC BUBBLE ──────────────────────────────────────── */
+.npc-bubble{background:linear-gradient(135deg,#080c20,#0d1030);border:1px solid var(--accent);border-left:3px solid var(--accent);padding:11px 14px;margin-bottom:10px;position:relative;animation:npcFadeIn .6s ease}
+@keyframes npcFadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.npc-bubble.warning{border-color:var(--danger);border-left-color:var(--danger);background:linear-gradient(135deg,#120008,#1a000e)}
+.npc-bubble.praise{border-color:var(--gold);border-left-color:var(--gold);background:linear-gradient(135deg,#0d0a00,#181200)}
+.npc-bubble.neutral{border-color:var(--muted);border-left-color:var(--muted)}
+.npc-label{font-size:7px;color:var(--muted);letter-spacing:.18em;margin-bottom:5px}
+.npc-text{font-size:11px;color:var(--text);line-height:2;letter-spacing:.04em}
+.npc-text em{font-style:italic;color:var(--muted)}
+.npc-dismiss{position:absolute;top:8px;right:10px;font-size:9px;color:var(--muted);cursor:pointer;border:none;background:transparent;font-family:var(--mono)}
+
+/* ── EMERGENCY QUEST ─────────────────────────────────── */
+.emergency-banner{background:linear-gradient(90deg,rgba(247,74,108,.13),rgba(176,74,247,.08));border:1px solid var(--danger);padding:10px 12px;margin-bottom:10px;position:relative;overflow:hidden;animation:ePulse 2s infinite}
+@keyframes ePulse{0%,100%{border-color:#f74a6c}50%{border-color:#ff9999}}
+.emergency-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(247,74,108,.08),transparent);animation:sweep 2s infinite}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.eb-title{font-size:10px;color:var(--danger);letter-spacing:.1em;font-family:var(--orb);font-weight:700;margin-bottom:3px}
+.eb-sub{font-size:9px;color:var(--text);letter-spacing:.04em}
+.eb-timer{font-size:13px;color:var(--warn);font-family:var(--orb);font-weight:700;margin-top:4px}
+.eb-reward{font-size:9px;color:var(--gold);margin-top:3px}
+.eb-btn{margin-top:7px;font-size:8px;padding:5px 12px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-family:var(--mono);letter-spacing:.08em;cursor:pointer;width:100%}
+.eb-btn:active{background:rgba(247,74,108,.15)}
+
+/* ── DUNGEON ─────────────────────────────────────────── */
+.dungeon-banner{padding:11px 13px;border:1px solid;margin-bottom:10px;position:relative;overflow:hidden}
+.db-type{font-size:9px;letter-spacing:.15em;margin-bottom:2px;font-family:var(--orb)}
+.db-name{font-size:12px;color:#fff;letter-spacing:.06em;font-weight:700;margin-bottom:5px;font-family:var(--orb)}
+.db-desc{font-size:9px;color:var(--muted);letter-spacing:.04em;line-height:1.6}
+.db-bonus{font-size:10px;color:var(--gold);margin-top:5px;letter-spacing:.05em}
+.db-btn{margin-top:8px;font-size:8px;padding:6px 12px;border:1px solid;background:transparent;font-family:var(--mono);letter-spacing:.08em;cursor:pointer;width:100%}
+.db-btn:active{opacity:.7}
+
+/* ── BOSS BATTLE ─────────────────────────────────────── */
+.boss-card{background:linear-gradient(135deg,#0d0810,#120818);border:1px solid #4a1a5a;padding:12px;margin-bottom:10px;position:relative;overflow:hidden}
+.boss-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(176,74,247,.1) 0%,transparent 60%);pointer-events:none}
+.boss-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.boss-name{font-size:14px;color:var(--purple);font-family:var(--orb);font-weight:900;letter-spacing:.06em}
+.boss-rank{font-size:9px;color:#0d0010;background:var(--purple);padding:2px 7px;letter-spacing:.1em}
+.boss-hp-label{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px}
+.boss-hp-track{height:8px;background:#1a0820;border:1px solid #4a1a5a;overflow:hidden;margin-bottom:8px}
+.boss-hp-fill{height:100%;background:linear-gradient(90deg,var(--danger),var(--purple));transition:width .6s}
+.boss-desc{font-size:9px;color:var(--muted);line-height:1.7;margin-bottom:8px}
+.boss-attacks{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.ba{font-size:8px;color:var(--purple);border:1px solid #4a1a5a;padding:3px 7px;letter-spacing:.06em}
+.boss-timer{font-size:12px;color:var(--danger);font-family:var(--orb);font-weight:700;margin-bottom:5px}
+.boss-progress{font-size:9px;color:var(--text);line-height:1.8}
+.boss-btn{width:100%;padding:9px;border:1px solid var(--purple);background:transparent;color:var(--purple);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em;margin-top:8px}
+.boss-btn:active{background:rgba(176,74,247,.15)}
+
+/* ── QUESTS ──────────────────────────────────────────── */
+.qlist{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.qcard{background:var(--panel);border:1px solid var(--border);padding:9px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.qcard[data-cat="STRENGTH"]::before{background:#f74a6c}
+.qcard[data-cat="CARDIO"]::before{background:#2adb82}
+.qcard[data-cat="ENDURANCE"]::before{background:#7b5cf5}
+.qcard[data-cat="INTELLIGENCE"]::before{background:#4a6cf7}
+.qcard[data-cat="VITALITY"]::before{background:#f7a84a}
+.qcard[data-cat="MOBILITY"]::before{background:#4a6cf7}
+.qcard[data-cat="FLEXIBILITY"]::before{background:#f7a84a}
+.qcard:active{border-color:var(--accent);background:#0a0e1a}
+.qcard.done{opacity:.35}
+.qcard.done::before{background:var(--success)!important}
+.qico{width:28px;height:28px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accent);flex-shrink:0}
+.qcard.done .qico{color:var(--success);border-color:#1a3a2a}
+.qname{font-size:10px;color:#e0e8ff;letter-spacing:.03em}
+.qcard.done .qname{text-decoration:line-through;color:var(--muted)}
+.qcat{font-size:8px;color:var(--muted);margin-top:2px}
+.qxp{font-size:10px;color:var(--gold);flex-shrink:0;text-align:right}
+.qxp .bonus{font-size:8px;color:var(--success);display:block}
+.qcard.done .qxp{color:var(--success)}
+
+/* ── BUTTONS ─────────────────────────────────────────── */
+.gbtn{width:100%;padding:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em;margin-bottom:7px;transition:all .15s}
+.gbtn:hover,.gbtn:active{border-color:var(--accent);color:var(--accent)}
+.abtn{width:100%;padding:9px;border:1px dashed var(--border);background:transparent;color:var(--muted);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em}
+.abtn:active{border-color:var(--accent);color:var(--accent)}
+
+/* ── TOAST ───────────────────────────────────────────── */
+.toast{background:#0d111f;border:1px solid var(--accent);color:var(--accent);font-size:10px;padding:7px 14px;letter-spacing:.1em;opacity:0;pointer-events:none;transition:opacity .3s,max-height .3s;text-align:center;max-height:0;overflow:hidden}
+.toast.show{opacity:1;max-height:40px;margin-bottom:8px}
+.toast.gold{border-color:var(--gold);color:var(--gold)}
+.toast.danger{border-color:var(--danger);color:var(--danger)}
+.toast.purple{border-color:var(--purple);color:var(--purple)}
+.toast.success{border-color:var(--success);color:var(--success)}
+
+/* ── BANNERS ─────────────────────────────────────────── */
+.lvlb{background:#0a0e1a;border:1px solid var(--gold);padding:8px 11px;display:flex;align-items:center;gap:7px;font-size:10px;color:var(--gold);letter-spacing:.06em;margin-bottom:9px}
+.warnb{background:#0a0e1a;border:1px solid var(--danger);padding:8px 11px;display:flex;align-items:center;gap:7px;font-size:9px;color:var(--danger);letter-spacing:.05em;margin-bottom:9px}
+
+/* ── STATS ───────────────────────────────────────────── */
+.sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:11px}
+.sc{background:var(--panel);border:1px solid var(--border);padding:9px;text-align:center}
+.slbl{font-size:8px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px}
+.sval{font-size:22px;color:#fff;font-family:var(--orb);font-weight:700}
+.sbars{display:flex;flex-direction:column;gap:7px;margin-bottom:11px}
+.sbr{display:flex;align-items:center;gap:7px}
+.sbl{font-size:8px;color:var(--muted);width:80px;letter-spacing:.06em}
+.sbt{flex:1;height:5px;background:#0d1028;border:1px solid var(--border)}
+.sbf{height:100%;transition:width .5s}
+.sbv{font-size:10px;color:var(--text);width:26px;text-align:right}
+
+/* ── HOLISTIC LOGGING ────────────────────────────────── */
+.hlog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
+.hlog-btn{padding:12px 8px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.07em;text-align:center;transition:all .2s}
+.hlog-btn:hover,.hlog-btn:active{border-color:var(--accent);color:var(--accent)}
+.hlog-ico{font-size:18px;display:block;margin-bottom:4px}
+.hlog-stat{font-size:8px;color:var(--gold);margin-top:3px}
+
+/* ── LOG ─────────────────────────────────────────────── */
+.llist{display:flex;flex-direction:column;gap:4px}
+.le{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);padding:7px 10px;display:flex;justify-content:space-between;font-size:10px}
+.lt{color:var(--muted)}
+.lx{color:var(--gold)}
+
+/* ── PY LOG ──────────────────────────────────────────── */
+.py-log{background:#080b18;border:1px solid var(--border);padding:9px 11px;font-size:9px;color:var(--success);letter-spacing:.04em;margin-bottom:10px;line-height:1.9;word-break:break-all}
+.py-log .pp{color:var(--muted)}
+.py-log .po{color:var(--gold)}
+
+/* ── OUTLIER LOG ─────────────────────────────────────── */
+.outlier-item{background:#150509;border:1px solid var(--danger);border-left:3px solid var(--danger);padding:8px 11px;margin-bottom:6px;font-size:9px}
+.oi-top{display:flex;justify-content:space-between;color:var(--danger);letter-spacing:.04em;margin-bottom:4px;font-family:var(--orb);font-size:9px}
+.oi-detail{color:var(--muted);line-height:1.6;letter-spacing:.02em}
+
+/* ── STREAK CAL ──────────────────────────────────────── */
+.streak-cal{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:11px}
+.dc{width:27px;height:27px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--muted)}
+.dc.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.dc.today{border-color:var(--gold)}
+.dc.today.on{background:var(--gold);border-color:var(--gold)}
+.milestones{display:flex;flex-direction:column;gap:5px}
+.ms{background:var(--panel);border:1px solid var(--border);padding:9px 11px;display:flex;justify-content:space-between;align-items:center}
+
+/* ── RANK TABLE ──────────────────────────────────────── */
+.rank-table{width:100%;border-collapse:collapse;font-size:9px}
+.rank-table th{color:var(--muted);letter-spacing:.1em;padding:5px 6px;border-bottom:1px solid var(--border);text-align:left;font-weight:400}
+.rank-table td{padding:6px;border-bottom:1px solid #0d1018}
+.rank-table tr.me td{color:var(--accent);background:rgba(74,108,247,.06)}
+
+/* ── MODAL ───────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border);padding:20px;width:100%;max-width:340px;max-height:90vh;overflow-y:auto;position:relative}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.modal h3{font-size:11px;color:#fff;letter-spacing:.1em;margin-bottom:14px;font-family:var(--orb)}
+.modal input,.modal select,.modal textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:9px 10px;margin-bottom:10px;outline:none}
+.modal input:focus,.modal select:focus{border-color:var(--accent)}
+.modal select option{background:var(--bg)}
+.modal-btns{display:flex;gap:8px;margin-top:4px}
+.modal-btn{flex:1;padding:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:.08em;cursor:pointer}
+.modal-btn.primary{border-color:var(--accent);color:var(--accent)}
+.modal-btn.danger{border-color:var(--danger);color:var(--danger)}
+.modal-btn:active{opacity:.7}
+.modal-btn.primary.disabled{opacity:.4;cursor:not-allowed;border-color:var(--muted);color:var(--muted);background:transparent}
+
+/* ── OBJECTIVE TIMER ─────────────────────────────────── */
+.timer-label{font-size:10px;color:var(--accent);letter-spacing:.06em;margin-bottom:16px;text-align:center;line-height:1.6}
+.timer-display{font-family:var(--orb);font-size:38px;font-weight:900;color:#fff;text-align:center;margin-bottom:12px;letter-spacing:.05em}
+.timer-track{height:6px;background:#0d1028;border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1s linear}
+.timer-hint{font-size:8px;color:var(--muted);text-align:center;letter-spacing:.02em;margin-bottom:4px;line-height:1.7}
+
+/* ── SHADOW ARMY ─────────────────────────────────────── */
+.shadow-roster{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.shadow-card{background:var(--panel);border:1px solid;padding:10px 12px;display:flex;gap:12px;align-items:center}
+.sc-ico{width:38px;height:38px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sc-name{font-size:11px;color:#fff;letter-spacing:.05em;font-family:var(--orb);font-weight:700}
+.sc-rank{font-size:8px;letter-spacing:.12em;margin-top:1px}
+.sc-bonus{font-size:9px;color:var(--success);margin-top:4px}
+.sc-req{font-size:8px;color:var(--muted);margin-top:2px}
+.sc-badge{font-size:8px;padding:2px 8px;letter-spacing:.1em;flex-shrink:0}
+.shadow-locked{opacity:.4;filter:grayscale(.4)}
+.prog-bar{height:3px;background:var(--border);margin-top:5px}
+.prog-fill{height:100%;background:var(--accent);transition:width .4s}
+
+/* ── STORY MODE ──────────────────────────────────────── */
+.chapter-card{background:var(--panel);border:1px solid var(--border);padding:12px;margin-bottom:8px;position:relative;overflow:hidden}
+.chapter-card.active-ch{border-color:var(--accent)}
+.chapter-card.locked-ch{opacity:.4;pointer-events:none}
+.chapter-card.completed-ch{border-color:var(--success);opacity:.65}
+.ch-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.ch-num{font-size:8px;color:var(--muted);letter-spacing:.15em}
+.ch-title{font-size:13px;color:#fff;letter-spacing:.06em;font-family:var(--orb);font-weight:700;margin-bottom:6px}
+.ch-story{font-size:9px;color:var(--muted);line-height:1.7;margin-bottom:8px;font-style:italic}
+.ch-reward{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-size:9px;color:var(--gold);display:flex;gap:8px;flex-wrap:wrap}
+.ch-btn{width:100%;padding:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em;margin-top:8px}
+.ch-btn:active{background:rgba(74,108,247,.15)}
+
+/* ── GACHA ───────────────────────────────────────────── */
+.gacha-chest{text-align:center;padding:20px 10px;background:linear-gradient(135deg,#080c1a,#0d0820);border:1px solid var(--border);margin-bottom:10px;position:relative;overflow:hidden}
+.gc-label{font-size:9px;color:var(--muted);letter-spacing:.15em;margin-bottom:8px}
+.gc-chest{font-size:52px;display:block;margin-bottom:8px;cursor:pointer;transition:transform .2s;user-select:none}
+.gc-chest:hover{transform:scale(1.05)}
+.gc-btn{padding:9px 24px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em}
+.gc-btn:active{background:rgba(201,168,76,.15)}
+.gc-cd{font-size:10px;color:var(--muted);margin-top:8px}
+.gacha-reveal{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:600;flex-direction:column;align-items:center;justify-content:center;display:none}
+.gacha-reveal.open{display:flex}
+.gr-big{font-size:72px;margin-bottom:16px;animation:popIn .5s cubic-bezier(.175,.885,.32,1.275)}
+.gr-rarity{font-family:var(--orb);font-weight:900;font-size:22px;margin-bottom:6px;animation:popIn .5s .15s both}
+.gr-name{font-size:14px;color:#fff;letter-spacing:.08em;animation:popIn .5s .3s both;margin-bottom:4px}
+.gr-bonus{font-size:11px;color:var(--success);animation:popIn .5s .4s both;margin-bottom:24px}
+.gr-close{padding:9px 32px;border:1px solid var(--muted);background:transparent;color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;letter-spacing:.1em;animation:popIn .5s .5s both}
+
+/* ── INVENTORY ───────────────────────────────────────── */
+.inv-grid{display:flex;flex-direction:column;gap:5px}
+.inv-item{background:var(--panel);border:1px solid var(--border);padding:8px 11px;display:flex;justify-content:space-between;align-items:center}
+.ii-name{font-size:10px;color:var(--text)}
+.ii-desc{font-size:8px;color:var(--muted);margin-top:2px}
+
+/* ── TITLES ──────────────────────────────────────────── */
+.title-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.title-card{background:var(--panel);border:1px solid var(--border);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
+.title-card.unlocked{border-color:rgba(201,168,76,.3)}
+.title-card.equipped{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.title-card.locked{opacity:.4}
+.tc-left{display:flex;align-items:center;gap:10px}
+.tc-icon{font-size:20px;flex-shrink:0}
+.tc-name{font-size:11px;color:#fff;letter-spacing:.06em;font-family:var(--orb);font-weight:700}
+.tc-req{font-size:8px;color:var(--muted);margin-top:2px}
+.tc-effect{font-size:8px;color:var(--accent);margin-top:2px}
+.tc-status{font-size:8px;padding:3px 8px;letter-spacing:.1em;cursor:pointer;border:1px solid;font-family:var(--mono)}
+.tc-status.equip-btn{border-color:var(--gold);color:var(--gold)}
+.tc-status.equipped-badge{border-color:var(--success);color:var(--success)}
+.tc-status.locked-badge{border-color:var(--muted);color:var(--muted);cursor:default}
+
+/* ── GUILD ───────────────────────────────────────────── */
+.guild-card{background:linear-gradient(135deg,#080c18,#0d1025);border:1px solid var(--border);padding:12px;margin-bottom:10px;position:relative;overflow:hidden}
+.guild-card.my-guild{border-color:var(--accent)}
+.guild-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.guild-name{font-size:13px;color:#fff;font-family:var(--orb);font-weight:700;letter-spacing:.06em}
+.guild-rank-badge{font-size:8px;padding:2px 7px;background:var(--accent);color:#000;letter-spacing:.1em}
+.guild-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.gs-item{text-align:center;padding:6px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.gs-val{font-size:13px;color:#fff;font-family:var(--orb);font-weight:700}
+.gs-lbl{font-size:7px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.guild-missions{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.gm-title{font-size:8px;color:var(--muted);letter-spacing:.15em;margin-bottom:6px}
+.gm-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(26,34,64,.5);font-size:9px}
+.gm-name{color:var(--text)}
+.gm-progress{display:flex;align-items:center;gap:6px}
+.gm-bar-wrap{width:60px;height:4px;background:var(--border);border-radius:0}
+.gm-bar-fill{height:100%;background:var(--accent);transition:width .4s}
+.gm-val{color:var(--gold);font-size:8px;min-width:36px;text-align:right}
+.guild-btn{width:100%;padding:8px;border:1px solid;background:transparent;font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em;margin-top:8px}
+.guild-btn.primary{border-color:var(--accent);color:var(--accent)}
+.guild-btn.danger{border-color:var(--danger);color:var(--danger)}
+.guild-btn:active{opacity:.7}
+.guild-list{display:flex;flex-direction:column;gap:7px}
+.guild-member-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(26,34,64,.5)}
+.gmr-name{font-size:10px;color:var(--text)}
+.gmr-role{font-size:7px;color:var(--muted);letter-spacing:.1em}
+.gmr-xp{font-size:9px;color:var(--gold)}
+
+/* ── KEY GRID ────────────────────────────────────────── */
+.key-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:10px}
+.key-item{border:1px solid var(--border);padding:7px;font-size:8px;color:var(--muted);line-height:1.7}
+.key-item strong{color:var(--text);display:block;margin-bottom:2px;letter-spacing:.05em}
+
+/* ── EMPTY ───────────────────────────────────────────── */
+.empty{font-size:10px;color:var(--muted);letter-spacing:.05em;padding:6px 0}
+
+/* ── RARITY ──────────────────────────────────────────── */
+.r1{color:var(--muted)}.r2{color:#378ADD}.r3{color:var(--gold)}.r4{color:var(--purple)}.r5{color:#ff6fa1;text-shadow:0 0 10px rgba(255,111,161,.5)}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY (SIGN UP / LOG IN) -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-logo">⚔ SHADOW SYSTEM</div>
+    <div class="auth-sub">HUNTER ASSOCIATION — REGISTRATION REQUIRED</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin">LOG IN</button>
+      <button class="auth-tab" id="authTabSignup">REGISTER</button>
+    </div>
+
+    <div class="auth-form" id="authFormLogin">
+      <label class="auth-label">HUNTER NAME</label>
+      <input class="auth-input" id="loginUsername" type="text" autocomplete="username" placeholder="Enter hunter name" maxlength="16">
+      <label class="auth-label">PASSWORD</label>
+      <input class="auth-input" id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password">
+      <div class="auth-error" id="loginError"></div>
+      <button class="auth-btn" id="loginBtn">[ LOG IN ]</button>
+    </div>
+
+    <div class="auth-form" id="authFormSignup" style="display:none;">
+      <label class="auth-label">CHOOSE HUNTER NAME</label>
+      <input class="auth-input" id="signupUsername" type="text" autocomplete="username" placeholder="3–16 characters" maxlength="16">
+      <label class="auth-label">CREATE PASSWORD</label>
+      <input class="auth-input" id="signupPassword" type="password" autocomplete="new-password" placeholder="Min. 6 characters">
+      <label class="auth-label">CONFIRM PASSWORD</label>
+      <input class="auth-input" id="signupConfirm" type="password" autocomplete="new-password" placeholder="Re-enter password">
+      <div class="auth-error" id="signupError"></div>
+      <button class="auth-btn" id="signupBtn">[ REGISTER HUNTER ]</button>
+    </div>
+
+    <div class="auth-note">⚠ SYSTEM NOTICE: hunter records are stored locally on this device only — there is no remote server.</div>
+  </div>
+</div>
+
+<!-- PENALTY OVERLAY -->
+<div class="penalty-overlay" id="penaltyOverlay">
+  <div class="penalty-title">⚠ SYSTEM</div>
+  <div class="penalty-sys">Hunter...<br><em>Your body is becoming weaker.</em><br>You have failed today's quest.<br><br><span style="color:var(--danger);">PENALTY DUNGEON ACTIVATED.</span></div>
+  <div class="penalty-tasks">
+    <div class="pt-title">— COMPLETE TO ESCAPE —</div>
+    <div class="pt-item" id="pt1" onclick="completePenaltyTask(0)">○ &nbsp;100 SQUATS</div>
+    <div class="pt-item" id="pt2" onclick="completePenaltyTask(1)">○ &nbsp;50 PUSH-UPS</div>
+  </div>
+  <div class="penalty-or">— OR —</div>
+  <div class="penalty-lose">LOSE <span style="color:var(--danger);font-family:var(--orb);">100 RANK XP</span> AND ACCEPT FAILURE</div>
+  <div class="penalty-timer" id="penaltyTimer">15:00</div>
+  <button class="penalty-close" onclick="acceptPenalty()">[ ACCEPT PENALTY — LOSE 100 XP ]</button>
+</div>
+
+<!-- RANK-UP CUTSCENE -->
+<div class="rankup-overlay" id="rankupOverlay">
+  <div class="rankup-bg" id="rankupBg"></div>
+  <div class="rankup-ring" id="rankupRing"><div class="rankup-icon" id="rankupIcon">⚔️</div></div>
+  <div class="rankup-rank" id="rankupRank" style="color:var(--accent);">B</div>
+  <div class="rankup-title" id="rankupTitle">RANK</div>
+  <div class="rankup-label" id="rankupLabel">HUNTER RANK INCREASED</div>
+  <button class="rankup-close" onclick="closeRankupCutscene()">[ ARISE AND CONTINUE ]</button>
+</div>
+
+<!-- TITLE UNLOCK CUTSCENE -->
+<div class="title-overlay" id="titleOverlay">
+  <div class="title-unlock-label">— TITLE UNLOCKED —</div>
+  <div class="title-unlock-icon" id="titleUnlockIcon">👑</div>
+  <div class="title-unlock-name" id="titleUnlockName">SHADOW MONARCH</div>
+  <div class="title-unlock-desc" id="titleUnlockDesc">You have achieved greatness.</div>
+  <button class="title-unlock-close" onclick="closeTitleOverlay()">[ EQUIP TITLE ]</button>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <span class="tl">SHADOW SYSTEM v6.0</span>
+  <span class="tr"><span class="dot"></span>SYSTEM ONLINE</span>
+</div>
+
+<div class="hero">
+  <div class="av" id="avBox"><i class="ti ti-shield"></i><span class="rpip" id="rankPip">E</span></div>
+  <div>
+    <div class="hname" id="heroName" title="Tap to rename">HUNTER</div>
+    <div class="htitle" id="heroTitle">E-RANK — AWAKENED</div>
+    <div class="hequipped-title" id="equippedTitleDisplay" style="display:none;">👑 <span id="equippedTitleName"></span></div>
+    <div class="xrow"><span>XP</span><span id="xpLbl">0 / 100</span></div>
+    <div class="xtrack"><div class="xfill" id="xpFill" style="width:0%"></div></div>
+  </div>
+  <div class="lvbox">
+    <div class="lvn" id="lvlNum">1</div>
+    <div class="lvs">LEVEL</div>
+    <button class="rbtn" id="renameBtn">RENAME</button>
+    <button class="rbtn" id="logoutBtn" style="margin-top:4px;border-color:var(--danger);color:var(--danger);">LOGOUT</button>
+  </div>
+</div>
+
+<div class="stat-mini">
+  <div class="sm-item"><div class="sm-lbl">STR</div><div class="sm-val" style="color:#f74a6c" id="mini-str">10</div></div>
+  <div class="sm-divider"></div>
+  <div class="sm-item"><div class="sm-lbl">AGI</div><div class="sm-val" style="color:#2adb82" id="mini-agi">10</div></div>
+  <div class="sm-divider"></div>
+  <div class="sm-item"><div class="sm-lbl">INT</div><div class="sm-val" style="color:#4a6cf7" id="mini-int">10</div></div>
+  <div class="sm-divider"></div>
+  <div class="sm-item"><div class="sm-lbl">VIT</div><div class="sm-val" style="color:#f7a84a" id="mini-vit">10</div></div>
+  <div class="sm-divider"></div>
+  <div class="sm-item"><div class="sm-lbl">SEN</div><div class="sm-val" style="color:#b04af7" id="mini-sen">10</div></div>
+  <div class="sm-divider"></div>
+  <div class="sm-item"><div class="sm-lbl">ARMY</div><div class="sm-val" style="color:#c9a84c" id="mini-army">0/7</div></div>
+</div>
+
+<div class="streak-bar">
+  <div class="si"><i class="ti ti-flame" style="font-size:13px;color:#f7a84a;"></i><div><div class="si-lbl">STREAK</div><div class="si-val g" id="curStreak">0D</div></div></div>
+  <div class="sdiv"></div>
+  <div class="si"><i class="ti ti-trophy" style="font-size:13px;color:#c9a84c;"></i><div><div class="si-lbl">BEST</div><div class="si-val" id="bestStreak">0D</div></div></div>
+  <div class="sdiv"></div>
+  <div class="si"><i class="ti ti-check" style="font-size:13px;color:#2adb82;"></i><div><div class="si-lbl">QUESTS</div><div class="si-val" id="totalQ">0</div></div></div>
+  <div class="sdiv"></div>
+  <div class="si" id="dungeonSI" style="display:none;"><i class="ti ti-sword" style="font-size:13px;" id="dungeonIcon"></i><div><div class="si-lbl">DUNGEON</div><div class="si-val" id="dungeonType" style="font-size:10px;">—</div></div></div>
+</div>
+
+<div class="nav">
+  <button class="nb active" id="nb-quests">QUESTS</button>
+  <button class="nb" id="nb-dungeon">DUNGEON</button>
+  <button class="nb" id="nb-story">STORY</button>
+  <button class="nb" id="nb-shadow">ARMY</button>
+  <button class="nb" id="nb-gacha">GACHA</button>
+  <button class="nb" id="nb-stats">STATS</button>
+  <button class="nb" id="nb-rank">RANK</button>
+  <button class="nb" id="nb-titles">TITLES</button>
+  <button class="nb" id="nb-guild">GUILD</button>
+</div>
+
+<div class="body">
+
+  <!-- QUESTS PANE -->
+  <div id="pane-quests">
+    <div id="toastEl" class="toast"></div>
+    <div id="lvlBanner" style="display:none" class="lvlb"><i class="ti ti-star" style="font-size:13px;"></i><span id="lvlText">LEVEL UP!</span></div>
+    <div id="warnBanner" style="display:none" class="warnb"><i class="ti ti-alert-triangle" style="font-size:13px;"></i><span>INCOMPLETE QUESTS — PENALTY INCOMING.</span></div>
+    <div id="npcBubble" style="display:none;"></div>
+    <div id="extractionNotif" style="display:none;" class="npc-bubble" style="border-color:var(--purple);">
+      <div class="npc-label">SHADOW SYSTEM</div>
+      <div class="npc-text" id="extractionDesc"></div>
+    </div>
+    <div id="emergencyBanner" style="display:none;"></div>
+    <div class="sec">DAILY QUEST BOARD</div>
+    <div class="qlist" id="qlist"></div>
+    <div class="sec">LIFESTYLE SYSTEM</div>
+    <div class="hlog-grid">
+      <button class="hlog-btn" onclick="logLifestyle('study')"><span class="hlog-ico">📚</span>STUDY / READING<div class="hlog-stat">+INT</div></button>
+      <button class="hlog-btn" onclick="logLifestyle('hydration')"><span class="hlog-ico">💧</span>HYDRATION<div class="hlog-stat">+VIT</div></button>
+      <button class="hlog-btn" onclick="logLifestyle('sleep')"><span class="hlog-ico">🌙</span>SLEEP LOG<div class="hlog-stat">+VIT</div></button>
+      <button class="hlog-btn" onclick="logLifestyle('meditation')"><span class="hlog-ico">🧘</span>MEDITATION<div class="hlog-stat">+SEN</div></button>
+    </div>
+    <button class="gbtn" id="refreshBtn">[ GENERATE NEW DAILY QUESTS ]</button>
+    <button class="abtn" id="addBtn">[ + ADD CUSTOM QUEST ]</button>
+    <div class="sec" style="margin-top:12px;">ACTIVITY LOG</div>
+    <div class="llist" id="llist"><div class="empty">NO RECORDS FOUND.</div></div>
+  </div>
+
+  <!-- DUNGEON PANE -->
+  <div id="pane-dungeon" style="display:none;">
+    <div class="sec">DUNGEON BREAK DETECTION</div>
+    <div id="dungeonContent"></div>
+    <div id="bossBattleContent"></div>
+  </div>
+
+  <!-- STORY PANE -->
+  <div id="pane-story" style="display:none;">
+    <div class="sec">THE WEAKEST HUNTER — CAMPAIGN</div>
+    <div id="storyContent"></div>
+  </div>
+
+  <!-- SHADOW ARMY PANE -->
+  <div id="pane-shadow" style="display:none;">
+    <div class="sec accent">SHADOW ARMY — MONARCH'S FORCE</div>
+    <div id="shadowArmyContent"></div>
+    <div class="sec" style="margin-top:8px;">EXTRACTION ENGINE</div>
+    <div class="py-log" id="extractionLog"><span class="pp">&gt;&gt;&gt; </span>shadow_system.init()<br><span class="po">"ARISE." — SHADOW MONARCH</span></div>
+  </div>
+
+  <!-- GACHA PANE -->
+  <div id="pane-gacha" style="display:none;">
+    <div class="sec">DAILY CHEST SYSTEM</div>
+    <div id="gachaContent"></div>
+    <div class="sec">INVENTORY</div>
+    <div class="inv-grid" id="inventoryContent"></div>
+  </div>
+
+  <!-- STATS PANE -->
+  <div id="pane-stats" style="display:none;">
+    <div class="sec">HUNTER STATUS WINDOW</div>
+    <div class="sgrid" id="statBoxes"></div>
+    <div class="sec">STAT DISTRIBUTION</div>
+    <div class="sbars" id="sbars"></div>
+    <div class="key-grid">
+      <div class="key-item"><strong>STR — STRENGTH</strong>Lifting, resistance, pushing limits.</div>
+      <div class="key-item"><strong>AGI — AGILITY</strong>Cardio, running, speed training.</div>
+      <div class="key-item"><strong>INT — INTELLIGENCE</strong>Study, reading, learning.</div>
+      <div class="key-item"><strong>VIT — VITALITY</strong>Sleep, hydration, endurance.</div>
+      <div class="key-item"><strong>SEN — SENSE</strong>Meditation, stretching, focus.</div>
+    </div>
+    <div class="sec" style="margin-top:12px;">PYTHON ENGINE OUTPUT</div>
+    <div id="pyLogStreak" class="py-log"><span class="pp">&gt;&gt;&gt; </span>loading...</div>
+    <div class="sec">SYSTEM INTEGRITY LOG — OUTLIER DETECTION</div>
+    <div id="outlierLog"></div>
+    <div class="sec">28-DAY CALENDAR</div>
+    <div class="streak-cal" id="streakCal"></div>
+    <div class="sec">MILESTONES</div>
+    <div class="milestones" id="milestones"></div>
+  </div>
+
+  <!-- RANK PANE -->
+  <div id="pane-rank" style="display:none;">
+    <div class="sec">GLOBAL RANKINGS</div>
+    <div id="pyLogRank" class="py-log"></div>
+    <table class="rank-table">
+      <thead><tr><th>#</th><th>HUNTER</th><th>RNK</th><th>LVL</th><th>SCORE</th><th>STK</th></tr></thead>
+      <tbody id="rankBody"></tbody>
+    </table>
+  </div>
+
+  <!-- 12. TITLES PANE -->
+  <div id="pane-titles" style="display:none;">
+    <div class="sec">12. TITLES</div>
+    <div style="background:var(--panel);border:1px solid var(--border);padding:10px 12px;margin-bottom:10px;font-size:9px;color:var(--muted);line-height:1.9;">
+      Titles change your profile display. Unlock via achievements.<br>
+      <span style="color:var(--accent);">Equipped title appears on your hunter profile.</span>
+    </div>
+    <div class="sec" style="margin-top:4px;">EQUIPPED</div>
+    <div id="equippedTitleCard" style="background:var(--panel);border:1px solid var(--gold);padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+      <span id="equippedTitleCardIcon" style="font-size:22px;">❓</span>
+      <div>
+        <div id="equippedTitleCardName" style="font-size:11px;color:var(--gold);font-family:var(--orb);">NONE EQUIPPED</div>
+        <div style="font-size:8px;color:var(--muted);margin-top:2px;">Tap a title below to equip it.</div>
+      </div>
+    </div>
+    <div class="sec">ALL TITLES</div>
+    <div class="title-grid" id="titlesGrid"></div>
+    <div class="py-log" id="pyLogTitles" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- GUILD PANE -->
+  <div id="pane-guild" style="display:none;">
+    <div class="sec">GUILD SYSTEM</div>
+    <div id="guildContent"></div>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="questModal">
+  <div class="modal">
+    <h3>[ ADD CUSTOM QUEST ]</h3>
+    <input type="text" id="qModalName" placeholder="Quest name" maxlength="40">
+    <input type="number" id="qModalXP" placeholder="XP reward (10–100)" min="10" max="100" value="25">
+    <select id="qModalCat">
+      <option value="0">Strength (STR)</option><option value="1">Cardio (AGI)</option>
+      <option value="2">Endurance (VIT)</option><option value="3">Mobility (INT)</option>
+      <option value="4">Flexibility (SEN)</option><option value="5">Study (INT)</option>
+      <option value="6">Sleep/Hydration (VIT)</option>
+    </select>
+    <div class="modal-btns">
+      <button class="modal-btn" id="qModalCancel">[ CANCEL ]</button>
+      <button class="modal-btn primary" id="qModalConfirm">[ ADD QUEST ]</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="renameModal">
+  <div class="modal">
+    <h3>[ RENAME HUNTER ]</h3>
+    <input type="text" id="renameInput" placeholder="Enter hunter name" maxlength="20">
+    <div class="modal-btns">
+      <button class="modal-btn" id="renameCancel">[ CANCEL ]</button>
+      <button class="modal-btn primary" id="renameConfirm">[ CONFIRM ]</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="lifestyleModal">
+  <div class="modal">
+    <h3 id="lifestyleTitle">[ LOG ACTIVITY ]</h3>
+    <div id="lifestyleDesc" style="font-size:9px;color:var(--muted);margin-bottom:12px;line-height:1.7;"></div>
+    <input type="number" id="lifestyleAmount" min="1" max="600" value="30">
+    <div class="modal-btns">
+      <button class="modal-btn" id="lifestyleCancel">[ CANCEL ]</button>
+      <button class="modal-btn primary" id="lifestyleConfirm">[ LOG IT ]</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bossModal">
+  <div class="modal">
+    <h3>[ REPORT BOSS DAMAGE ]</h3>
+    <div style="font-size:9px;color:var(--muted);margin-bottom:12px;line-height:1.8;">Pushup = 2 dmg &nbsp;|&nbsp; Squat = 1 dmg &nbsp;|&nbsp; 1 km = 100 dmg</div>
+    <input type="number" id="bossPushups" placeholder="Pushups" min="0" value="0">
+    <input type="number" id="bossSquats" placeholder="Squats" min="0" value="0">
+    <input type="number" id="bossKm" placeholder="Km run" min="0" step="0.1" value="0">
+    <div class="modal-btns">
+      <button class="modal-btn" id="bossCancel">[ CANCEL ]</button>
+      <button class="modal-btn primary" id="bossConfirm">[ STRIKE BOSS ]</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUILD MODAL -->
+<div class="modal-overlay" id="guildModal">
+  <div class="modal">
+    <h3 id="guildModalTitle">[ CREATE GUILD ]</h3>
+    <input type="text" id="guildModalName" placeholder="Guild name" maxlength="24">
+    <select id="guildModalFocus">
+      <option value="str">Strength — STR focus</option>
+      <option value="agi">Speed — AGI focus</option>
+      <option value="vit">Endurance — VIT focus</option>
+      <option value="int">Intelligence — INT focus</option>
+      <option value="sen">Balance — SEN focus</option>
+    </select>
+    <div class="modal-btns">
+      <button class="modal-btn" id="guildModalCancel">[ CANCEL ]</button>
+      <button class="modal-btn primary" id="guildModalConfirm">[ CREATE ]</button>
+    </div>
+  </div>
+</div>
+
+<!-- OBJECTIVE TIMER MODAL -->
+<div class="modal-overlay" id="timerModal">
+  <div class="modal">
+    <h3>[ OBJECTIVE TIMER ]</h3>
+    <div class="timer-label" id="timerModalLabel">TASK</div>
+    <div class="timer-display" id="timerModalDisplay">00:45</div>
+    <div class="timer-track"><div class="timer-fill" id="timerModalBar" style="width:0%;"></div></div>
+    <div class="timer-hint">Perform the activity now. The objective unlocks when the timer reaches zero.</div>
+    <div class="modal-btns">
+      <button class="modal-btn" id="timerModalCancel">[ CANCEL ]</button>
+      <button class="modal-btn primary disabled" id="timerModalConfirm" disabled>[ HOLD — IN PROGRESS ]</button>
+    </div>
+  </div>
+</div>
+
+<!-- GACHA REVEAL -->
+<div id="gachaReveal" class="gacha-reveal">
+  <div class="gr-big" id="grIcon">🗡️</div>
+  <div class="gr-rarity" id="grRarity">★★★</div>
+  <div class="gr-name" id="grName">Bronze Dagger</div>
+  <div class="gr-bonus" id="grBonus">+5 STR</div>
+  <button class="gr-close" id="grClose">[ CLAIM REWARD ]</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// PYTHON ENGINE — Pyodide bridge
+// ═══════════════════════════════════════════════════════
+var pyodide = null;
+var pyReady = false;
+
+async function initPyodide() {
+  try {
+    pyodide = await loadPyodide();
+    pyReady = true;
+    await pyodide.runPythonAsync(`
+import json, math, datetime, random, re, hashlib
+
+class StreakCalculator:
+    def __init__(self, hunter_id):
+        self.hunter_id = hunter_id
+    def compute(self, active_days_json):
+        days = json.loads(active_days_json)
+        if not days:
+            return json.dumps({"current": 0, "best": 0, "total": 0})
+        from datetime import date, timedelta
+        parsed = sorted([datetime.datetime.strptime(d, "%a %b %d %Y").date() for d in days])
+        cur = best = tmp = 0
+        for i, d in enumerate(parsed):
+            if i == 0: tmp = 1
+            else:
+                diff = (d - parsed[i-1]).days
+                tmp = tmp + 1 if diff == 1 else 1
+            if tmp > best: best = tmp
+        today = date.today()
+        if parsed:
+            last = parsed[-1]
+            gap = (today - last).days
+            cur = tmp if gap <= 1 else 0
+        return json.dumps({"current": cur, "best": best, "total": len(parsed)})
+    def xp_multiplier(self, current_streak):
+        if current_streak >= 30: return 3.0
+        if current_streak >= 14: return 2.0
+        if current_streak >= 7:  return 1.5
+        if current_streak >= 3:  return 1.25
+        return 1.0
+
+class RankingEngine:
+    RANKS = [("E",1,9),("D",10,19),("C",20,29),("B",30,49),("A",50,69),("S",70,100)]
+    def score(self, level, total_xp, streak):
+        return level * 500 + total_xp + streak * 50
+    def get_rank(self, level):
+        for r, lo, hi in self.RANKS:
+            if lo <= level <= hi: return r
+        return "S"
+    def rank_all(self, hunters_json, player_json):
+        hunters = json.loads(hunters_json)
+        player = json.loads(player_json)
+        all_h = hunters + [player]
+        for h in all_h:
+            h["score"] = self.score(h["level"], h.get("xp", h.get("totalXP", 0)), h["streak"])
+            h["rank"] = self.get_rank(h["level"])
+        all_h.sort(key=lambda x: -x["score"])
+        pos = next((i+1 for i, h in enumerate(all_h) if h.get("isMe")), len(all_h))
+        return json.dumps({"ranked": all_h, "position": pos})
+
+class ShadowExtractionEngine:
+    SOLDIERS = [
+        {"id":"tank","req":"str","reqCount":5,"grade":"KNIGHT"},
+        {"id":"iron","req":"str","reqCount":15,"grade":"ELITE KNIGHT"},
+        {"id":"igris","req":"str","reqCount":40,"grade":"MARSHAL"},
+        {"id":"jima","req":"agi","reqCount":5,"grade":"KNIGHT"},
+        {"id":"beru","req":"agi","reqCount":40,"grade":"MARSHAL"},
+        {"id":"tusk","req":"vit","reqCount":20,"grade":"COMMANDER"},
+        {"id":"bellion","req":"str","reqCount":100,"grade":"GRAND MARSHAL"},
+    ]
+    def check_extractions(self, quest_counts_json, current_army_json):
+        counts = json.loads(quest_counts_json)
+        army = json.loads(current_army_json)
+        newly_unlocked = []
+        for s in self.SOLDIERS:
+            if s["id"] not in army:
+                if counts.get(s["req"], 0) >= s["reqCount"]:
+                    newly_unlocked.append(s["id"])
+        return json.dumps(newly_unlocked)
+
+class GuildEngine:
+    def compute_guild_xp(self, members_json):
+        members = json.loads(members_json)
+        total = sum(m.get("weeklyXP", 0) for m in members)
+        return json.dumps({"totalWeeklyXP": total, "memberCount": len(members)})
+    def guild_rank(self, weekly_xp):
+        if weekly_xp >= 100000: return "#1 Worldwide"
+        if weekly_xp >= 50000: return "#5 Worldwide"
+        if weekly_xp >= 25000: return "#10 Worldwide"
+        if weekly_xp >= 10000: return "#15 Worldwide"
+        if weekly_xp >= 5000:  return "#25 Worldwide"
+        return "#50+ Worldwide"
+    def mission_progress(self, guild_stats_json):
+        stats = json.loads(guild_stats_json)
+        missions = [
+            {"name": "100,000 Steps", "key": "steps", "target": 100000},
+            {"name": "500 Pushups", "key": "pushups", "target": 500},
+            {"name": "300 km Run", "key": "km", "target": 300},
+        ]
+        result = []
+        for m in missions:
+            val = stats.get(m["key"], 0)
+            pct = min(100, round(val / m["target"] * 100))
+            result.append({"name": m["name"], "current": val, "target": m["target"], "pct": pct})
+        return json.dumps(result)
+
+class TitleEngine:
+    TITLES = [
+        {"id":"weakest","name":"Weakest Hunter","icon":"😔","req":"start","desc":"Your journey begins. The world looks down on you.","effect":"Default title"},
+        {"id":"goblin_slayer","name":"Goblin Slayer","icon":"⚔️","req":"quests_5","desc":"Slain your first dungeon monsters.","effect":"+5% quest XP"},
+        {"id":"dungeon_conqueror","name":"Dungeon Conqueror","icon":"🏰","req":"quests_20","desc":"You have conquered many dungeons.","effect":"+10% dungeon XP"},
+        {"id":"shadow_monarch","name":"Shadow Monarch","icon":"🌑","req":"army_5","desc":"Five shadows arise at your call.","effect":"+15% all stats"},
+        {"id":"king_of_hunters","name":"King of Hunters","icon":"👑","req":"level_50","desc":"Reached the pinnacle of hunter rank.","effect":"+20% XP gain"},
+        {"id":"fitness_monarch","name":"Fitness Monarch","icon":"💪","req":"str_100","desc":"Strength beyond human limits.","effect":"+25 STR bonus"},
+        {"id":"iron_will","name":"Iron Will","icon":"🔩","req":"streak_14","desc":"14 days of unbroken discipline.","effect":"+2x streak bonus"},
+        {"id":"shadow_walker","name":"Shadow Walker","icon":"👤","req":"streak_30","desc":"30 days walking in shadow.","effect":"+3x streak bonus"},
+        {"id":"boss_slayer","name":"Boss Slayer","icon":"🐉","req":"boss_1","desc":"Defeated the weekly raid boss.","effect":"+15% boss damage"},
+        {"id":"ant_king","name":"Ant King","icon":"🐜","req":"boss_3","desc":"Defeated three weekly raid bosses.","effect":"+30% boss damage"},
+        {"id":"grand_marshal","name":"Grand Marshal","icon":"🛡️","req":"army_7","desc":"Command the full Shadow Army.","effect":"+30% army bonuses"},
+        {"id":"monarch_arise","name":"ARISE — SHADOW ARISE","icon":"⚡","req":"level_70","desc":"S-Rank achieved. You stand at the apex.","effect":"+50% all XP gains"},
+    ]
+    def check_unlock(self, state_json):
+        s = json.loads(state_json)
+        unlocked = []
+        for t in self.TITLES:
+            req = t["req"]
+            if req == "start": unlocked.append(t["id"])
+            elif req.startswith("quests_"):
+                needed = int(req.split("_")[1])
+                if s.get("totalQuests", 0) >= needed: unlocked.append(t["id"])
+            elif req.startswith("streak_"):
+                needed = int(req.split("_")[1])
+                if s.get("bestStreak", 0) >= needed: unlocked.append(t["id"])
+            elif req.startswith("level_"):
+                needed = int(req.split("_")[1])
+                if s.get("level", 1) >= needed: unlocked.append(t["id"])
+            elif req.startswith("str_"):
+                needed = int(req.split("_")[1])
+                if s.get("str", 0) >= needed: unlocked.append(t["id"])
+            elif req.startswith("army_"):
+                needed = int(req.split("_")[1])
+                if s.get("armySize", 0) >= needed: unlocked.append(t["id"])
+            elif req.startswith("boss_"):
+                needed = int(req.split("_")[1])
+                if s.get("bossCount", 0) >= needed: unlocked.append(t["id"])
+        return json.dumps(unlocked)
+
+class PenaltyEngine:
+    def should_penalize(self, last_quest_date_str, quests_done):
+        if quests_done > 0: return False
+        try:
+            last = datetime.datetime.strptime(last_quest_date_str, "%a %b %d %Y").date()
+            today = datetime.date.today()
+            return (today - last).days >= 1
+        except: return False
+    def calculate_xp_loss(self, current_level, streak):
+        base = 100
+        level_factor = math.log(max(1, current_level) + 1, 2)
+        return int(base * level_factor)
+
+class NPCMessageEngine:
+    WARNINGS=[("Hunter...","Your body is becoming weaker.","Complete today's quest."),("The System has detected inactivity.","Failure is not an option.","ARISE and train.")]
+    PRAISE=[("Excellent work.","You have exceeded expectations.","The System acknowledges your growth."),("Hunter.","You are no longer weak.","Continue this path.")]
+    NEUTRAL=[("Daily quest board updated.","New challenges await.","Prove yourself."),("The gates are restless today.","Dungeon break imminent.","Prepare yourself, Hunter.")]
+    def get_message(self, mood):
+        if mood == "warning": lines = random.choice(self.WARNINGS)
+        elif mood == "praise": lines = random.choice(self.PRAISE)
+        else: lines = random.choice(self.NEUTRAL)
+        return json.dumps({"lines": list(lines), "mood": mood})
+
+class GachaEngine:
+    RARITY_WEIGHTS = {1:45,2:30,3:17,4:7,5:1}
+    def roll(self, seed=None):
+        if seed is not None: random.seed(seed)
+        roll = random.uniform(0, 100)
+        cumulative = 0
+        for stars, weight in sorted(self.RARITY_WEIGHTS.items()):
+            cumulative += weight
+            if roll < cumulative: return stars
+        return 1
+    def pity_roll(self, rolls_since_epic, rolls_since_legendary):
+        if rolls_since_legendary >= 90: return 5
+        if rolls_since_epic >= 10: return 4
+        return self.roll()
+
+class AuthEngine:
+    USERNAME_MIN, USERNAME_MAX = 3, 16
+    PASSWORD_MIN = 6
+    def validate_signup(self, username, password, confirm):
+        errors = []
+        u = (username or "").strip()
+        if len(u) < self.USERNAME_MIN or len(u) > self.USERNAME_MAX:
+            errors.append("Hunter name must be " + str(self.USERNAME_MIN) + "-" + str(self.USERNAME_MAX) + " characters.")
+        elif not re.match(r'^[A-Za-z0-9_]+$', u):
+            errors.append("Hunter name may only contain letters, numbers, and underscores.")
+        if len(password or "") < self.PASSWORD_MIN:
+            errors.append("Password must be at least " + str(self.PASSWORD_MIN) + " characters.")
+        if password != confirm:
+            errors.append("Passwords do not match.")
+        return json.dumps({"valid": len(errors) == 0, "errors": errors})
+    def hash_password(self, password, salt):
+        return hashlib.sha256(((salt or "") + "::" + (password or "")).encode("utf-8")).hexdigest()
+
+class OutlierEngine:
+    # Anti-cheat: compares an incoming XP claim against the hunter's recent
+    # activity baseline. A sudden spike doesn't get rejected outright -- it
+    # gets dampened ("diminishing returns") and logged for review.
+    THRESHOLD = 10.0       # ratio vs. average that counts as a spike
+    MIN_SAMPLES = 5        # need some history before judging anything
+    SOFT_CAP_MULT = 3.0    # amounts up to 3x the average pass through fully
+    DIMINISH_RATE = 0.1    # only 10% credit for XP claimed beyond the cap
+    def check(self, history_json, incoming_amt):
+        history = json.loads(history_json)
+        amounts = [h.get("amt", 0) for h in history]
+        n = len(amounts)
+        avg = (sum(amounts) / n) if n else 0
+        is_outlier = False
+        ratio = 0
+        adjusted = incoming_amt
+        if n >= self.MIN_SAMPLES and avg > 0:
+            ratio = incoming_amt / avg
+            if ratio >= self.THRESHOLD:
+                is_outlier = True
+                soft_cap = avg * self.SOFT_CAP_MULT
+                overage = max(0, incoming_amt - soft_cap)
+                adjusted = round(min(incoming_amt, soft_cap) + overage * self.DIMINISH_RATE)
+        return json.dumps({
+            "isOutlier": is_outlier,
+            "average": round(avg, 2),
+            "ratio": round(ratio, 2),
+            "adjustedAmt": int(adjusted),
+            "sampleSize": n
+        })
+
+class XPEngine:
+    def xp_for_level(self, level):
+        return round(100 * (1.15 ** (level - 1)))
+    def apply_xp(self, current_xp, current_level, xp_needed, amount):
+        xp = current_xp + amount
+        level = current_level
+        leveled = False
+        while xp >= xp_needed:
+            xp -= xp_needed
+            level += 1
+            xp_needed = self.xp_for_level(level)
+            leveled = True
+        return json.dumps({"xp": xp, "level": level, "xpNeeded": xp_needed, "leveled": leveled})
+
+streak_calc = StreakCalculator("hunter")
+ranking_engine = RankingEngine()
+shadow_engine = ShadowExtractionEngine()
+guild_engine = GuildEngine()
+title_engine = TitleEngine()
+penalty_engine = PenaltyEngine()
+npc_engine = NPCMessageEngine()
+gacha_engine = GachaEngine()
+xp_engine = XPEngine()
+auth_engine = AuthEngine()
+outlier_engine = OutlierEngine()
+print("Python engines v7 ready")
+`);
+    console.log('Pyodide loaded');
+    renderStats();
+  } catch(e) {
+    console.log('Pyodide unavailable:', e.message);
+    pyReady = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// DATA CONSTANTS
+// ═══════════════════════════════════════════════════════
+var RANK_DATA=[{r:'E',min:1,max:9,c:'#8888aa'},{r:'D',min:10,max:19,c:'#2adb82'},{r:'C',min:20,max:29,c:'#378ADD'},{r:'B',min:30,max:49,c:'#c9a84c'},{r:'A',min:50,max:69,c:'#f74a6c'},{r:'S',min:70,max:100,c:'#b04af7'}];
+var RANK_TITLES={E:'AWAKENED',D:'NOVICE HUNTER',C:'SKILLED HUNTER',B:'ELITE HUNTER',A:'SHADOW HUNTER',S:'SHADOW MONARCH'};
+var BAR_COLORS={str:'#f74a6c',agi:'#2adb82',vit:'#f7a84a',int:'#4a6cf7',sen:'#b04af7'};
+var STAT_LABELS={str:'STRENGTH',agi:'AGILITY',vit:'VITALITY',int:'INTELLIGENCE',sen:'SENSE'};
+var STAT_KEYS=['str','agi','vit','int','sen'];
+
+var SHADOW_SOLDIERS=[
+  {id:'tank',name:'TANK',emoji:'🐻',grade:'KNIGHT',color:'#378ADD',req:'str',reqCount:5,bonus:'+8% STR on all workouts',bonusStat:'str',bonusPct:8,story:'Alpha Ice Bear from the Red Gate.'},
+  {id:'iron',name:'IRON',emoji:'🪓',grade:'ELITE KNIGHT',color:'#c9a84c',req:'str',reqCount:15,bonus:'+15% STR, +Taunt passive',bonusStat:'str',bonusPct:15,story:'Shadow of A-Rank hunter Kim Chul.'},
+  {id:'igris',name:'IGRIS',emoji:'🛡️',grade:'MARSHAL',color:'#f74a6c',req:'str',reqCount:40,bonus:'+25% STR, Blood-Red Commander',bonusStat:'str',bonusPct:25,story:'Blood-Red Commander. Jinwoo\'s first shadow.'},
+  {id:'jima',name:'JIMA',emoji:'🐍',grade:'KNIGHT',color:'#2adb82',req:'agi',reqCount:5,bonus:'+8% AGI on cardio quests',bonusStat:'agi',bonusPct:8,story:'Shadow of Boss Naga. Swift and venomous.'},
+  {id:'beru',name:'BERU',emoji:'🐜',grade:'MARSHAL',color:'#b04af7',req:'agi',reqCount:40,bonus:'+25% AGI, Healing magic active',bonusStat:'agi',bonusPct:25,story:'Ant King of Jeju Island.'},
+  {id:'tusk',name:'TUSK',emoji:'🐗',grade:'COMMANDER',color:'#f7a84a',req:'vit',reqCount:20,bonus:'+18% VIT, Endurance sovereign',bonusStat:'vit',bonusPct:18,story:'High Orc leader Kargalgan.'},
+  {id:'bellion',name:'BELLION',emoji:'👑',grade:'GRAND MARSHAL',color:'#c9a84c',req:'str',reqCount:100,bonus:'+35% ALL STATS — Supreme general',bonusStat:'str',bonusPct:35,story:'Grand Marshal of the ancient Shadow Army.'}
+];
+
+var QUEST_POOL=[
+  {name:'100 PUSH-UPS',xp:30,stat:'str',cat:'STRENGTH'},{name:'100 SIT-UPS',xp:25,stat:'str',cat:'STRENGTH'},{name:'50 PULL-UPS',xp:35,stat:'str',cat:'STRENGTH'},
+  {name:'200 ARM CURLS',xp:28,stat:'str',cat:'STRENGTH'},{name:'3 SETS BENCH PRESS',xp:32,stat:'str',cat:'STRENGTH'},
+  {name:'10 KM RUN',xp:50,stat:'agi',cat:'CARDIO'},{name:'30 MIN SPRINT INTERVALS',xp:40,stat:'agi',cat:'CARDIO'},{name:'5 KM TIMED RUN',xp:35,stat:'agi',cat:'CARDIO'},{name:'20 MIN JUMP ROPE',xp:30,stat:'agi',cat:'CARDIO'},
+  {name:'100 SQUATS',xp:30,stat:'vit',cat:'ENDURANCE'},{name:'5 MIN PLANK HOLD',xp:25,stat:'vit',cat:'ENDURANCE'},{name:'50 LUNGES EACH LEG',xp:28,stat:'vit',cat:'ENDURANCE'},
+  {name:'30 MIN YOGA',xp:20,stat:'int',cat:'MOBILITY'},{name:'FOAM ROLL FULL BODY',xp:15,stat:'int',cat:'MOBILITY'},
+  {name:'20 MIN STRETCHING',xp:15,stat:'sen',cat:'FLEXIBILITY'},{name:'HIP FLEXOR HOLDS',xp:18,stat:'sen',cat:'FLEXIBILITY'}
+];
+
+var STORY_CHAPTERS=[
+  {id:1,title:'THE WEAKEST HUNTER',story:'"They call me the weakest. E-rank. But every journey begins..."',tasks:[{t:'20 PUSH-UPS',key:'t1'},{t:'20 SQUATS',key:'t2'},{t:'1 KM RUN',key:'t3'}],xpReward:500,itemReward:'🗡️ Bronze Dagger',statReq:null},
+  {id:2,title:'GOBLIN DUNGEON',story:'"The System speaks. A dungeon has appeared."',tasks:[{t:'50 PUSH-UPS',key:'t1'},{t:'50 SIT-UPS',key:'t2'},{t:'2 KM RUN',key:'t3'}],xpReward:1000,itemReward:'🛡️ Novice Armor',statReq:{str:25}},
+  {id:3,title:'THE DOUBLE DUNGEON',story:'"A trap. Something inside me awakens."',tasks:[{t:'100 PUSH-UPS',key:'t1'},{t:'100 SQUATS',key:'t2'},{t:'5 KM RUN',key:'t3'},{t:'30 MIN PLANK',key:'t4'}],xpReward:2500,itemReward:'⚔️ System Blade',statReq:{str:50,agi:35}},
+  {id:4,title:'SHADOW EXTRACTION',story:'"ARISE." The first shadow stands. I am no longer alone."',tasks:[{t:'200 PUSH-UPS',key:'t1'},{t:'200 SQUATS',key:'t2'},{t:'10 KM RUN',key:'t3'},{t:'EXTRACT 1 SHADOW',key:'t4'}],xpReward:5000,itemReward:'👑 Shadow Monarch Cloak',statReq:{str:80,agi:60,vit:50}},
+  {id:5,title:'JEJU ISLAND RAID',story:'"The Ant King. They say it cannot be beaten."',tasks:[{t:'500 PUSHUPS TOTAL',key:'t1'},{t:'500 SQUATS TOTAL',key:'t2'},{t:'25 KM RUN TOTAL',key:'t3'},{t:'UNLOCK BERU',key:'t4'}],xpReward:15000,itemReward:"🐜 Beru's Fang",statReq:{str:150,agi:120,vit:100}}
+];
+
+var GACHA_POOL=[
+  {id:'hp_potion',stars:1,icon:'🧪',name:'HP POTION',bonus:'+10 XP',rarity:'COMMON'},
+  {id:'stamina_pill',stars:1,icon:'💊',name:'STAMINA PILL',bonus:'+10 XP',rarity:'COMMON'},
+  {id:'ration',stars:1,icon:'🍖',name:'RATION',bonus:'+3 VIT',rarity:'COMMON'},
+  {id:'gold_coin',stars:2,icon:'💰',name:'GOLD COIN',bonus:'+50 XP',rarity:'UNCOMMON'},
+  {id:'skill_scroll',stars:2,icon:'📜',name:'SKILL SCROLL',bonus:'+8 INT',rarity:'UNCOMMON'},
+  {id:'bandage',stars:2,icon:'🩹',name:'BANDAGE',bonus:'+8 VIT',rarity:'UNCOMMON'},
+  {id:'iron_sword',stars:3,icon:'⚔️',name:'IRON SWORD',bonus:'+100 XP, +12 STR',rarity:'RARE'},
+  {id:'guardian_shield',stars:3,icon:'🛡️',name:'GUARDIAN SHIELD',bonus:'+12 VIT, +12 STR',rarity:'RARE'},
+  {id:'speed_boots',stars:3,icon:'👟',name:'SPEED BOOTS',bonus:'+15 AGI',rarity:'RARE'},
+  {id:'shadow_dagger',stars:4,icon:'🗡️',name:'SHADOW DAGGER',bonus:'+200 XP, +20 STR, +20 AGI',rarity:'EPIC'},
+  {id:'magic_crystal',stars:4,icon:'🔮',name:'MAGIC CRYSTAL',bonus:'+20 INT, +20 SEN',rarity:'EPIC'},
+  {id:'hunters_crown',stars:4,icon:'👑',name:"HUNTER'S CROWN",bonus:'+250 XP, +15 to all stats',rarity:'EPIC'},
+  {id:'shadow_soldier',stars:5,icon:'🌑',name:'SHADOW SOLDIER',bonus:'SHADOW EXTRACTED',rarity:'LEGENDARY'},
+  {id:'system_access',stars:5,icon:'⚡',name:'SYSTEM ACCESS',bonus:'+500 XP + full stat boost',rarity:'LEGENDARY'},
+  {id:'monarchs_ring',stars:5,icon:'🏆',name:"MONARCH'S RING",bonus:'+30 ALL STATS, +1000 XP',rarity:'LEGENDARY'}
+];
+
+var DUNGEONS={
+  fire:{name:'VOLCANIC DUNGEON',type:'FIRE TYPE',color:'#f74a6c',icon:'🌋',desc:'Scorching dungeon — molten walls, extreme heat.',xpMult:2.0,condition:'Noon hours (11am–2pm)',quests:['100 SQUATS','50 BURPEES','20 MIN HIIT']},
+  water:{name:'ABYSSAL WATER GATE',type:'WATER TYPE',color:'#378ADD',icon:'🌊',desc:'Water Gate opening. Endurance required.',xpMult:1.5,condition:'Evening (5pm–9pm)',quests:['30 MIN CARDIO','2 KM RUN','BREATH HOLDS']},
+  shadow:{name:'SHADOW REALM GATE',type:'SHADOW TYPE',color:'#b04af7',icon:'🌑',desc:'Midnight. The Shadow Monarch\'s domain.',xpMult:1.75,condition:'Night (9pm–3am)',quests:['MIDNIGHT PUSHUPS','SHADOW TRAINING','MEDITATION']},
+  ice:{name:'RED ICE GATE',type:'ICE TYPE',color:'#7bf7f4',icon:'❄️',desc:'Red Gate. Only the strongest push through.',xpMult:1.5,condition:'Early morning (3am–5am)',quests:['50 BURPEES','100 JUMPING JACKS','COLD PLUNGE']},
+  lightning:{name:'LIGHTNING DUNGEON',type:'LIGHTNING TYPE',color:'#f7f74a',icon:'⚡',desc:'Crackling energy — explosive power rewarded.',xpMult:1.75,condition:'Dawn (5am–11am)',quests:['SPRINT INTERVALS','EXPLOSIVE PUSHUPS','BOX JUMPS']}
+};
+
+var WEEKLY_BOSSES=[
+  {id:'cerberus',name:'CERBERUS',icon:'🐕',hp:1000,maxHp:1000,rank:'A-RANK',attacks:['HELLFIRE','TRIPLE BITE','SHADOW STEP'],desc:'Three-headed guardian. Defeat before midnight.',title:'CERBERUS SLAYER'},
+  {id:'spider_queen',name:'SPIDER QUEEN',icon:'🕷️',hp:1500,maxHp:1500,rank:'S-RANK',attacks:['WEB TRAP','VENOM FANG','SPAWN WAVE'],desc:'Ancient dungeon boss. Break free with pure strength.',title:'QUEEN SLAYER'},
+  {id:'ant_king',name:'ANT KING BERU',icon:'🐜',hp:2000,maxHp:2000,rank:'S-RANK',attacks:['GRAVITY SMASH','FIRE BREATH','SIZE ALTER'],desc:'Killed every S-Rank team on Jeju Island.',title:'ANT KING SLAYER'}
+];
+
+var GLOBAL_HUNTERS=[
+  {name:'SHADOW MONARCH',level:87,xp:44350,streak:42,rank:'S'},{name:'IRON FIST KAI',level:54,xp:27800,streak:21,rank:'A'},
+  {name:'GHOST BLADE',level:47,xp:23600,streak:18,rank:'A'},{name:'STEEL HUNTER',level:38,xp:19650,streak:30,rank:'B'},
+  {name:'DAWN RUNNER',level:29,xp:14980,streak:14,rank:'C'},{name:'VIPER REX',level:22,xp:11320,streak:9,rank:'C'},
+  {name:'NOVA PIERCE',level:17,xp:8510,streak:6,rank:'D'},{name:'ROOKIE #001',level:2,xp:1040,streak:1,rank:'E'}
+];
+
+var MILESTONES=[
+  {days:3,label:'3-DAY STREAK',reward:'+50 BONUS XP',c:'#4a6cf7'},{days:7,label:'WEEK WARRIOR',reward:'+150 XP & 1.5x BONUS',c:'#2adb82'},
+  {days:14,label:'IRON WILL',reward:'+400 XP & 2x BONUS',c:'#c9a84c'},{days:30,label:'SHADOW WALKER',reward:'+1000 XP & 2.5x BONUS',c:'#b04af7'}
+];
+
+// 12 TITLES DATA (mirror of Python)
+var ALL_TITLES=[
+  {id:'weakest',name:'Weakest Hunter',icon:'😔',req:'start',desc:'Your journey begins. The world looks down on you.',effect:'Default title',reqDesc:'Always unlocked'},
+  {id:'goblin_slayer',name:'Goblin Slayer',icon:'⚔️',req:'quests_5',desc:'Slain your first dungeon monsters.',effect:'+5% quest XP',reqDesc:'Complete 5 quests total'},
+  {id:'dungeon_conqueror',name:'Dungeon Conqueror',icon:'🏰',req:'quests_20',desc:'You have conquered many dungeons.',effect:'+10% dungeon XP',reqDesc:'Complete 20 quests total'},
+  {id:'shadow_monarch',name:'Shadow Monarch',icon:'🌑',req:'army_5',desc:'Five shadows arise at your call.',effect:'+15% all stats',reqDesc:'Extract 5 shadow soldiers'},
+  {id:'king_of_hunters',name:'King of Hunters',icon:'👑',req:'level_50',desc:'Reached the pinnacle of hunter rank.',effect:'+20% XP gain',reqDesc:'Reach Level 50'},
+  {id:'fitness_monarch',name:'Fitness Monarch',icon:'💪',req:'str_100',desc:'Strength beyond human limits.',effect:'+25 STR bonus',reqDesc:'Reach 100 STR'},
+  {id:'iron_will',name:'Iron Will',icon:'🔩',req:'streak_14',desc:'14 days of unbroken discipline.',effect:'+2x streak bonus',reqDesc:'Maintain 14-day streak'},
+  {id:'shadow_walker',name:'Shadow Walker',icon:'👤',req:'streak_30',desc:'30 days walking in shadow.',effect:'+3x streak bonus',reqDesc:'Maintain 30-day streak'},
+  {id:'boss_slayer',name:'Boss Slayer',icon:'🐉',req:'boss_1',desc:'Defeated the weekly raid boss.',effect:'+15% boss damage',reqDesc:'Defeat 1 weekly boss'},
+  {id:'ant_king',name:'Ant King',icon:'🐜',req:'boss_3',desc:'Defeated three weekly raid bosses.',effect:'+30% boss damage',reqDesc:'Defeat 3 weekly bosses'},
+  {id:'grand_marshal',name:'Grand Marshal',icon:'🛡️',req:'army_7',desc:'Command the full Shadow Army.',effect:'+30% army bonuses',reqDesc:'Extract all 7 shadow soldiers'},
+  {id:'monarch_arise',name:'ARISE — SHADOW ARISE',icon:'⚡',req:'level_70',desc:'S-Rank achieved. You stand at the apex.',effect:'+50% all XP gains',reqDesc:'Reach Level 70'}
+];
+
+// ═══════════════════════════════════════════════════════
+// ACCOUNTS — local hunter registration (client-side only,
+// no backend — see auth-note in the UI for what this means)
+// ═══════════════════════════════════════════════════════
+var ACCOUNTS_KEY='sl_shadow_accounts';
+var SESSION_KEY='sl_shadow_session';
+
+function loadAccounts(){try{return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)||'[]');}catch(e){return [];}}
+function saveAccounts(accs){try{localStorage.setItem(ACCOUNTS_KEY,JSON.stringify(accs));}catch(e){}}
+function findAccount(username){var u=(username||'').trim().toLowerCase();return loadAccounts().find(function(a){return a.username.toLowerCase()===u;});}
+
+// Resolve any existing session synchronously so loadState() below knows
+// which save-slot to read on first paint.
+var currentUser=(function(){
+  try{
+    var sess=localStorage.getItem(SESSION_KEY);
+    if(sess&&loadAccounts().some(function(a){return a.username===sess;}))return sess;
+  }catch(e){}
+  return null;
+})();
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+var DEFAULT_STATE={
+  name:'HUNTER',level:1,xp:0,xpNeeded:100,totalXP:0,
+  stats:{str:10,agi:10,vit:10,int:10,sen:10},quests:[],log:[],
+  streak:{current:0,best:0,totalQuests:0,activeDays:[]},lastQuestDate:'',
+  shadowArmy:[],questCounts:{str:0,agi:0,vit:0,int:0,sen:0},
+  chapterProgress:{},inventory:[],ownedItems:[],
+  gachaLastOpen:0,gachaPity:{sinceEpic:0,sinceLegendary:0},
+  boss:null,bossDefeated:[],bossCount:0,
+  titles:[],equippedTitle:null,
+  dungeon:null,emergencyQuest:null,lifestyleLogs:[],
+  penaltyActive:false,lastPenaltyDate:'',
+  guild:null,prevRank:null,
+  xpHistory:[],outlierFlags:[]
+};
+
+function stateKey(){return 'sl_shadow_v6_'+(currentUser||'guest');}
+
+var state=loadState();
+
+function saveState(){try{localStorage.setItem(stateKey(),JSON.stringify(state));}catch(e){}}
+
+function loadState(){
+  try{
+    var raw=localStorage.getItem(stateKey());
+    if(!raw&&!currentUser){raw=localStorage.getItem('sl_shadow_v6')||localStorage.getItem('sl_shadow_v5');} // legacy pre-account save
+    if(raw){
+      var s=JSON.parse(raw);
+      return Object.assign({},DEFAULT_STATE,s,{
+        stats:Object.assign({},DEFAULT_STATE.stats,s.stats||{}),
+        streak:Object.assign({},DEFAULT_STATE.streak,s.streak||{}),
+        questCounts:Object.assign({},DEFAULT_STATE.questCounts,s.questCounts||{}),
+        gachaPity:Object.assign({},DEFAULT_STATE.gachaPity,s.gachaPity||{}),
+        ownedItems:s.ownedItems||[],
+        bossCount:s.bossCount||0,
+        equippedTitle:s.equippedTitle||null,
+        guild:s.guild||null,
+        prevRank:s.prevRank||null,
+        xpHistory:s.xpHistory||[],
+        outlierFlags:s.outlierFlags||[]
+      });
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+
+window.addEventListener('pagehide',saveState);
+window.addEventListener('beforeunload',saveState);
+window.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState();});
+
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function getRD(lvl){for(var i=0;i<RANK_DATA.length;i++)if(lvl>=RANK_DATA[i].min&&lvl<=RANK_DATA[i].max)return RANK_DATA[i];return RANK_DATA[5];}
+function xpFor(lvl){return Math.round(100*Math.pow(1.15,lvl-1));}
+function todayStr(){return new Date().toDateString();}
+function pad2(n){return String(n).padStart(2,'0');}
+function getDungeonMult(){if(!state.dungeon)return 1.0;var d=DUNGEONS[state.dungeon.type];return d?d.xpMult:1.0;}
+function getStreakMult(cur){var s=cur!==undefined?cur:state.streak.current;return s>=14?2.0:s>=7?1.5:s>=3?1.25:1.0;}
+
+function showToast(msg,type){
+  var el=document.getElementById('toastEl');if(!el)return;
+  el.textContent=msg;el.className='toast show'+(type?' '+type:'');
+  clearTimeout(el._t);el._t=setTimeout(function(){el.className='toast';},3000);
+}
+
+function playPing(){try{var ctx=new(window.AudioContext||window.webkitAudioContext)();var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(880,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(440,ctx.currentTime+0.3);g.gain.setValueAtTime(0.12,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);o.start();o.stop(ctx.currentTime+0.4);}catch(e){}}
+function playDanger(){try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[220,180,140].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.type='sawtooth';o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0.08,ctx.currentTime+i*0.2);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.2+0.3);o.start(ctx.currentTime+i*0.2);o.stop(ctx.currentTime+i*0.2+0.3);});}catch(e){}}
+function playLevelUp(){try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[523,659,784,1047].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0,ctx.currentTime+i*0.12);g.gain.linearRampToValueAtTime(0.12,ctx.currentTime+i*0.12+0.05);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.12+0.25);o.start(ctx.currentTime+i*0.12);o.stop(ctx.currentTime+i*0.12+0.25);});}catch(e){}}
+function playRankUp(){try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[261,329,392,523,659,784,1047,1318].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0,ctx.currentTime+i*0.1);g.gain.linearRampToValueAtTime(0.15,ctx.currentTime+i*0.1+0.05);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.1+0.4);o.start(ctx.currentTime+i*0.1);o.stop(ctx.currentTime+i*0.1+0.5);});}catch(e){}}
+
+// ═══════════════════════════════════════════════════════
+// RANK-UP CUTSCENE
+// ═══════════════════════════════════════════════════════
+var lastRankLetter = null;
+
+function checkRankUp(oldLevel, newLevel) {
+  var oldRD = getRD(oldLevel);
+  var newRD = getRD(newLevel);
+  if (oldRD.r !== newRD.r || lastRankLetter !== newRD.r) {
+    if (newRD.r !== lastRankLetter) {
+      lastRankLetter = newRD.r;
+      triggerRankUpCutscene(newRD);
+    }
+  }
+}
+
+function triggerRankUpCutscene(rd) {
+  var icons = {E:'⚔️',D:'🗡️',C:'🛡️',B:'🏅',A:'💎',S:'👑'};
+  document.getElementById('rankupIcon').textContent = icons[rd.r] || '⚔️';
+  document.getElementById('rankupRank').textContent = rd.r + '-RANK';
+  document.getElementById('rankupRank').style.color = rd.c;
+  document.getElementById('rankupTitle').textContent = RANK_TITLES[rd.r];
+  document.getElementById('rankupLabel').textContent = 'HUNTER RANK INCREASED — '+rd.r+'-RANK ACHIEVED';
+  // Spawn particles
+  var bg = document.getElementById('rankupBg');
+  bg.innerHTML = '';
+  for(var i=0;i<30;i++){
+    var p = document.createElement('div');
+    p.className = 'rankup-particle';
+    p.style.left = Math.random()*100+'%';
+    p.style.animationDelay = Math.random()*2+'s';
+    p.style.animationDuration = (2+Math.random()*2)+'s';
+    p.style.background = rd.c;
+    bg.appendChild(p);
+  }
+  document.getElementById('rankupRing').style.borderColor = rd.c;
+  document.getElementById('rankupRing').style.boxShadow = '0 0 30px '+rd.c;
+  document.getElementById('rankupOverlay').classList.add('active');
+  playRankUp();
+}
+
+function closeRankupCutscene() {
+  document.getElementById('rankupOverlay').classList.remove('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// STREAK (Python-powered with JS fallback)
+// ═══════════════════════════════════════════════════════
+function jsStreakCompute(days){
+  if(!days||!days.length)return{current:0,best:0,total:0};
+  var parsed=days.slice().sort(function(a,b){return new Date(a)-new Date(b);});
+  var cur=0,best=0,tmp=0;
+  for(var i=0;i<parsed.length;i++){
+    if(i===0){tmp=1;}
+    else{var diff=Math.round((new Date(parsed[i])-new Date(parsed[i-1]))/86400000);tmp=(diff===1)?tmp+1:1;}
+    if(tmp>best)best=tmp;
+  }
+  var today=new Date();today.setHours(0,0,0,0);
+  if(parsed.length){var last=new Date(parsed[parsed.length-1]);last.setHours(0,0,0,0);var gap=Math.round((today-last)/86400000);cur=(gap<=1)?tmp:0;}
+  return{current:cur,best:best,total:parsed.length};
+}
+
+async function computeStreak(){
+  var days=state.streak.activeDays.slice();
+  var today=todayStr();
+  if(state.quests.some(function(q){return q.done;})&&days.indexOf(today)===-1){days.push(today);state.streak.activeDays=days;}
+  if(pyReady){
+    try{
+      var result=await pyodide.runPythonAsync('json.dumps(streak_calc.compute('+JSON.stringify(JSON.stringify(days))+'))' );
+      var r=JSON.parse(typeof result==='string'?result:result.toString());
+      if(typeof r==='string')r=JSON.parse(r);
+      state.streak.current=r.current||0;
+      state.streak.best=Math.max(r.best||0,state.streak.best);
+      return{current:state.streak.current,best:state.streak.best,days:days};
+    }catch(e){}
+  }
+  var r=jsStreakCompute(days);
+  state.streak.current=r.current;state.streak.best=Math.max(r.best,state.streak.best);
+  return{current:state.streak.current,best:state.streak.best,days:days};
+}
+
+// ═══════════════════════════════════════════════════════
+// OUTLIER DETECTION (Python-powered with JS fallback)
+// Compares an incoming XP claim against the hunter's recent
+// average. A 10x+ spike gets dampened ("diminishing returns")
+// instead of granted in full, and is logged for review.
+// ═══════════════════════════════════════════════════════
+var OUTLIER_WINDOW_MS=14*24*60*60*1000; // only look at the last 14 days
+
+function jsOutlierCheck(history,incomingAmt){
+  var amounts=history.map(function(h){return h.amt||0;});
+  var n=amounts.length;
+  var avg=n?(amounts.reduce(function(a,b){return a+b;},0)/n):0;
+  var result={isOutlier:false,average:Math.round(avg*100)/100,ratio:0,adjustedAmt:incomingAmt,sampleSize:n};
+  var MIN_SAMPLES=5,THRESHOLD=10,SOFT_CAP_MULT=3,DIMINISH_RATE=0.1;
+  if(n>=MIN_SAMPLES&&avg>0){
+    var ratio=incomingAmt/avg;
+    result.ratio=Math.round(ratio*100)/100;
+    if(ratio>=THRESHOLD){
+      result.isOutlier=true;
+      var softCap=avg*SOFT_CAP_MULT;
+      var overage=Math.max(0,incomingAmt-softCap);
+      result.adjustedAmt=Math.round(Math.min(incomingAmt,softCap)+overage*DIMINISH_RATE);
+    }
+  }
+  return result;
+}
+
+async function checkOutlier(history,incomingAmt){
+  if(pyReady){
+    try{
+      var res=await pyodide.runPythonAsync('outlier_engine.check('+JSON.stringify(JSON.stringify(history))+','+incomingAmt+')');
+      return JSON.parse(typeof res==='string'?res:res.toString());
+    }catch(e){}
+  }
+  return jsOutlierCheck(history,incomingAmt);
+}
+
+// ═══════════════════════════════════════════════════════
+// XP & LEVELING
+// ═══════════════════════════════════════════════════════
+async function addXP(amt){
+  var now=Date.now();
+  state.xpHistory=(state.xpHistory||[]).filter(function(h){return now-h.ts<=OUTLIER_WINDOW_MS;});
+  var check=await checkOutlier(state.xpHistory,amt);
+  var grantAmt=amt;
+  if(check.isOutlier){
+    grantAmt=check.adjustedAmt;
+    state.outlierFlags=state.outlierFlags||[];
+    state.outlierFlags.unshift({time:new Date().toLocaleString(),requested:amt,average:check.average,ratio:check.ratio,granted:grantAmt});
+    if(state.outlierFlags.length>20)state.outlierFlags=state.outlierFlags.slice(0,20);
+    showToast('⚠ ACTIVITY SPIKE DETECTED — XP DIMINISHED ('+check.ratio+'× NORMAL)','danger');
+  }
+  state.xpHistory.push({amt:grantAmt,ts:now});
+  if(state.xpHistory.length>60)state.xpHistory=state.xpHistory.slice(-60);
+
+  var mult=getDungeonMult()*getStreakMult();
+  var final=Math.round(grantAmt*mult);
+  var oldLevel=state.level;
+  if(pyReady){
+    try{
+      var res=await pyodide.runPythonAsync('xp_engine.apply_xp('+state.xp+','+state.level+','+state.xpNeeded+','+final+')');
+      var r=JSON.parse(typeof res==='string'?res:res.toString());
+      state.xp=r.xp;state.level=r.level;state.xpNeeded=r.xpNeeded;state.totalXP+=final;
+      if(r.leveled){triggerLevelUp(oldLevel,r.level);}
+      saveState();updateUI();return final;
+    }catch(e){}
+  }
+  state.xp+=final;state.totalXP+=final;
+  var leveled=false;
+  while(state.xp>=state.xpNeeded){state.xp-=state.xpNeeded;state.level++;state.xpNeeded=xpFor(state.level);leveled=true;}
+  if(leveled)triggerLevelUp(oldLevel,state.level);
+  saveState();updateUI();return final;
+}
+
+function triggerLevelUp(oldLevel, newLevel){
+  var rd=getRD(newLevel);
+  var oldRD=getRD(oldLevel||newLevel-1);
+  document.getElementById('lvlText').textContent='LEVEL UP — LV.'+newLevel+' '+rd.r+'-RANK '+RANK_TITLES[rd.r];
+  var b=document.getElementById('lvlBanner');b.style.display='flex';
+  playLevelUp();
+  // Rank-up cutscene if rank changed
+  if(oldRD.r!==rd.r){
+    setTimeout(function(){triggerRankUpCutscene(rd);},1200);
+  }
+  setTimeout(function(){b.style.display='none';},6000);
+  showNPCMessage('praise');
+  checkTitleUnlocks();
+}
+
+// ═══════════════════════════════════════════════════════
+// NPC MESSAGE ENGINE
+// ═══════════════════════════════════════════════════════
+async function showNPCMessage(mood){
+  var lines,actualMood=mood;
+  if(pyReady){try{var res=await pyodide.runPythonAsync('npc_engine.get_message("'+mood+'")');var r=JSON.parse(typeof res==='string'?res:res.toString());lines=r.lines;actualMood=r.mood;}catch(e){lines=null;}}
+  if(!lines){var pools={warning:[['Hunter...','Your body is becoming weaker.','Complete today\'s quest.']],praise:[['Excellent work.','You have exceeded expectations.','The System acknowledges your growth.']],neutral:[['Daily quest board updated.','New challenges await.','Prove yourself.']]};var pool=pools[mood]||pools.neutral;lines=pool[Math.floor(Math.random()*pool.length)];actualMood=mood;}
+  var el=document.getElementById('npcBubble');if(!el)return;
+  var cls=actualMood==='warning'?'warning':actualMood==='praise'?'praise':'neutral';
+  el.innerHTML='<div class="npc-bubble '+cls+'"><div class="npc-label">SYSTEM MESSAGE</div><div class="npc-text">'+lines.filter(Boolean).map(function(l,i){return i===0?('<strong>'+l+'</strong>'):('<em>'+l+'</em>');}).join('<br>')+'</div><button class="npc-dismiss" onclick="document.getElementById(\'npcBubble\').style.display=\'none\'">✕</button></div>';
+  el.style.display='block';
+}
+function determineNPCMood(){var done=state.quests.filter(function(q){return q.done;}).length;var streak=state.streak.current;if(done===0&&streak===0)return'warning';if(done>=4||streak>=7)return'praise';if(done>=2)return'neutral';return streak===0?'warning':'neutral';}
+
+// ═══════════════════════════════════════════════════════
+// PENALTY ZONE
+// ═══════════════════════════════════════════════════════
+var penaltyTasks=[false,false];
+var penaltyInterval=null;
+var penaltyEnd=0;
+
+function checkPenalty(){
+  if(state.lastPenaltyDate===todayStr())return;
+  if(!state.lastQuestDate||state.lastQuestDate===todayStr())return;
+  var yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  var yday=yesterday.toDateString();
+  var hadCompletionYesterday=state.streak.activeDays.indexOf(yday)!==-1;
+  if(!hadCompletionYesterday&&state.totalXP>0)triggerPenalty();
+}
+
+function triggerPenalty(){
+  playDanger();state.penaltyActive=true;document.body.classList.add('penalty-mode');
+  penaltyTasks=[false,false];
+  document.getElementById('pt1').className='pt-item';document.getElementById('pt1').textContent='○  100 SQUATS';
+  document.getElementById('pt2').className='pt-item';document.getElementById('pt2').textContent='○  50 PUSH-UPS';
+  penaltyEnd=Date.now()+15*60*1000;
+  document.getElementById('penaltyOverlay').classList.add('active');
+  penaltyInterval=setInterval(updatePenaltyTimer,1000);showNPCMessage('warning');
+}
+
+function updatePenaltyTimer(){var rem=penaltyEnd-Date.now();if(rem<=0){acceptPenalty();return;}var m=Math.floor(rem/60000),s=Math.floor((rem%60000)/1000);document.getElementById('penaltyTimer').textContent=pad2(m)+':'+pad2(s);}
+
+function completePenaltyTask(idx){
+  penaltyTasks[idx]=true;
+  var el=document.getElementById('pt'+(idx+1));el.className='pt-item done';el.textContent='✓  '+(idx===0?'100 SQUATS':'50 PUSH-UPS');
+  if(penaltyTasks[0]&&penaltyTasks[1]){clearInterval(penaltyInterval);document.getElementById('penaltyOverlay').classList.remove('active');document.body.classList.remove('penalty-mode');state.penaltyActive=false;state.lastPenaltyDate=todayStr();addXP(50);showToast('PENALTY DUNGEON CLEARED — +50 BONUS XP!','success');showNPCMessage('praise');saveState();}
+}
+
+function acceptPenalty(){
+  clearInterval(penaltyInterval);document.getElementById('penaltyOverlay').classList.remove('active');document.body.classList.remove('penalty-mode');
+  state.penaltyActive=false;state.lastPenaltyDate=todayStr();
+  var loss=Math.min(100,state.xp+(state.level>1?20:0));state.xp=Math.max(0,state.xp-loss);state.totalXP=Math.max(0,state.totalXP-loss);
+  saveState();updateUI();showToast('PENALTY ACCEPTED — -'+loss+' XP LOST','danger');showNPCMessage('warning');
+}
+
+// ═══════════════════════════════════════════════════════
+// 12. TITLES SYSTEM
+// ═══════════════════════════════════════════════════════
+function getTitleState(){
+  return {
+    totalQuests: state.streak.totalQuests||0,
+    bestStreak: state.streak.best||0,
+    level: state.level,
+    str: state.stats.str,
+    armySize: state.shadowArmy.length,
+    bossCount: state.bossCount||0
+  };
+}
+
+function checkTitleRequirement(t){
+  var ts = getTitleState();
+  var req = t.req;
+  if(req==='start') return true;
+  if(req.startsWith('quests_')) return ts.totalQuests >= parseInt(req.split('_')[1]);
+  if(req.startsWith('streak_')) return ts.bestStreak >= parseInt(req.split('_')[1]);
+  if(req.startsWith('level_')) return ts.level >= parseInt(req.split('_')[1]);
+  if(req.startsWith('str_')) return ts.str >= parseInt(req.split('_')[1]);
+  if(req.startsWith('army_')) return ts.armySize >= parseInt(req.split('_')[1]);
+  if(req.startsWith('boss_')) return ts.bossCount >= parseInt(req.split('_')[1]);
+  return false;
+}
+
+var titleUnlockQueue = [];
+var titleShowingOverlay = false;
+
+async function checkTitleUnlocks(){
+  var prevUnlocked = state.titles ? state.titles.slice() : [];
+  if(pyReady){
+    try{
+      var ts=getTitleState();
+      var res=await pyodide.runPythonAsync('title_engine.check_unlock('+JSON.stringify(JSON.stringify(ts))+')');
+      var newIds=JSON.parse(typeof res==='string'?res:res.toString());
+      newIds.forEach(function(id){
+        if(prevUnlocked.indexOf(id)===-1){
+          prevUnlocked.push(id);
+          var t=ALL_TITLES.find(function(x){return x.id===id;});
+          if(t)titleUnlockQueue.push(t);
+        }
+      });
+      state.titles=prevUnlocked;
+    }catch(e){checkTitleUnlocksJS(prevUnlocked);}
+  } else {
+    checkTitleUnlocksJS(prevUnlocked);
+  }
+  saveState();
+  if(titleUnlockQueue.length&&!titleShowingOverlay)showNextTitleUnlock();
+  renderTitlesPane();
+  updateEquippedTitle();
+}
+
+function checkTitleUnlocksJS(prevUnlocked){
+  ALL_TITLES.forEach(function(t){
+    if(prevUnlocked.indexOf(t.id)===-1&&checkTitleRequirement(t)){
+      prevUnlocked.push(t.id);
+      titleUnlockQueue.push(t);
+    }
+  });
+  state.titles=prevUnlocked;
+}
+
+function showNextTitleUnlock(){
+  if(!titleUnlockQueue.length){titleShowingOverlay=false;return;}
+  titleShowingOverlay=true;
+  var t=titleUnlockQueue.shift();
+  document.getElementById('titleUnlockIcon').textContent=t.icon;
+  document.getElementById('titleUnlockName').textContent=t.name;
+  document.getElementById('titleUnlockDesc').textContent=t.desc+'\n'+t.effect;
+  document.getElementById('titleOverlay').classList.add('active');
+  // Auto-equip first unlocked if nothing equipped
+  if(!state.equippedTitle){
+    state.equippedTitle=t.id;saveState();updateEquippedTitle();
+  }
+}
+
+function closeTitleOverlay(){
+  document.getElementById('titleOverlay').classList.remove('active');
+  setTimeout(showNextTitleUnlock,300);
+}
+
+function equipTitle(titleId){
+  if(!state.titles||state.titles.indexOf(titleId)===-1)return;
+  state.equippedTitle=titleId;saveState();updateEquippedTitle();renderTitlesPane();showToast('TITLE EQUIPPED','gold');
+}
+
+function updateEquippedTitle(){
+  var t=state.equippedTitle?ALL_TITLES.find(function(x){return x.id===state.equippedTitle;}):null;
+  var disp=document.getElementById('equippedTitleDisplay');
+  var nameEl=document.getElementById('equippedTitleName');
+  if(t&&disp&&nameEl){disp.style.display='flex';nameEl.textContent=t.name;}
+  else if(disp){disp.style.display='none';}
+  // Update titles pane card
+  var card=document.getElementById('equippedTitleCard');
+  if(card){
+    var iconEl=document.getElementById('equippedTitleCardIcon');
+    var nameCard=document.getElementById('equippedTitleCardName');
+    if(t){iconEl.textContent=t.icon;nameCard.textContent=t.name;nameCard.style.color='var(--gold)';}
+    else{iconEl.textContent='❓';nameCard.textContent='NONE EQUIPPED';nameCard.style.color='var(--muted)';}
+  }
+}
+
+function renderTitlesPane(){
+  var grid=document.getElementById('titlesGrid');
+  if(!grid)return;
+  var html='';
+  ALL_TITLES.forEach(function(t){
+    var isUnlocked=state.titles&&state.titles.indexOf(t.id)!==-1;
+    var isEquipped=state.equippedTitle===t.id;
+    var cls='title-card'+(isEquipped?' equipped':isUnlocked?' unlocked':' locked');
+    html+='<div class="'+cls+'">'
+      +'<div class="tc-left"><div class="tc-icon">'+(isUnlocked?t.icon:'🔒')+'</div><div>'
+      +'<div class="tc-name" style="color:'+(isEquipped?'var(--gold)':isUnlocked?'#fff':'var(--muted)')+';">'+t.name+'</div>'
+      +'<div class="tc-req">'+(isUnlocked?t.effect:t.reqDesc)+'</div>'
+      +(isUnlocked&&!isEquipped?'<div class="tc-effect">'+t.effect+'</div>':'')
+      +'</div></div>';
+    if(isEquipped) html+='<div class="tc-status equipped-badge">✓ ON</div>';
+    else if(isUnlocked) html+='<button class="tc-status equip-btn" onclick="equipTitle(\''+t.id+'\')">EQUIP</button>';
+    else html+='<div class="tc-status locked-badge">LOCKED</div>';
+    html+='</div>';
+  });
+  grid.innerHTML=html;
+  // Python log
+  var pyLog=document.getElementById('pyLogTitles');
+  if(pyLog){
+    var unlocked=state.titles||[];
+    pyLog.innerHTML='<span class="pp">&gt;&gt;&gt; </span>title_engine.check_unlock(hunter_state)<br>'
+      +'<span class="po">'+unlocked.length+'/'+ALL_TITLES.length+' titles unlocked</span><br>'
+      +'<span class="pp">&gt;&gt;&gt; </span>equipped = "'+( state.equippedTitle||'None' )+'"</span>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// QUEST LOGIC
+// ═══════════════════════════════════════════════════════
+async function completeQuest(id){
+  var q=state.quests.find(function(q){return q.id===id;});
+  if(!q||q.done)return;
+  q.done=true;state.streak.totalQuests++;
+  if(state.questCounts[q.stat]!==undefined)state.questCounts[q.stat]++;
+  var earned=await addXP(q.xp);
+  state.stats[q.stat]=Math.min(999,state.stats[q.stat]+Math.ceil(q.xp/8));
+  state.shadowArmy.forEach(function(sid){var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(s&&s.bonusStat===q.stat)state.stats[q.stat]=Math.min(999,state.stats[q.stat]+2);});
+  if(state.boss){var dmg=q.cat==='STRENGTH'?20:q.cat==='CARDIO'?15:10;state.boss.currentHp=Math.max(0,state.boss.currentHp-dmg);if(state.boss.currentHp===0)triggerBossDefeat();}
+  // Guild contribution
+  if(state.guild){state.guild.stats=state.guild.stats||{steps:0,pushups:0,km:0};if(q.cat==='STRENGTH'){state.guild.stats.pushups+=5;}if(q.cat==='CARDIO'){state.guild.stats.km+=0.5;state.guild.stats.steps+=500;}state.guild.weeklyXP=(state.guild.weeklyXP||0)+earned;}
+  var now=new Date();
+  state.log.unshift({text:q.name,xp:earned,base:q.xp,stat:q.stat,time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),date:now.toLocaleDateString()});
+  if(state.log.length>100)state.log=state.log.slice(0,100);
+  var sd=await computeStreak();updateStreakBar(sd);
+  var mult=getDungeonMult()*getStreakMult();var multStr=mult>1?' (×'+mult.toFixed(2)+'!)':'';
+  showToast('QUEST COMPLETE — +'+earned+' XP'+multStr,mult>1?'gold':'success');
+  playPing();saveState();
+  renderQuests();renderLog();renderStats();checkWarning();
+  await checkShadowExtractions();
+  await checkTitleUnlocks();
+  updateMiniBar();
+  var done=state.quests.filter(function(q){return q.done;}).length;
+  if(done===1)showNPCMessage('neutral');
+  if(done>=Math.ceil(state.quests.length*0.75))showNPCMessage('praise');
+}
+
+function generateDailyQuests(){
+  var pool=QUEST_POOL.slice();
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  state.quests=pool.slice(0,6).map(function(q,i){return{id:i+1,name:q.name,xp:q.xp,stat:q.stat,cat:q.cat,done:false};});
+  state.lastQuestDate=todayStr();saveState();spawnEmergencyQuest();detectDungeon();
+}
+
+function checkAndRefreshDailyQuests(){if(!state.quests.length||state.lastQuestDate!==todayStr())generateDailyQuests();detectDungeon();checkWeeklyBoss();}
+
+function checkWarning(){var inc=state.quests.filter(function(q){return !q.done;}).length;document.getElementById('warnBanner').style.display=inc>0?'flex':'none';}
+
+// ═══════════════════════════════════════════════════════
+// SHADOW ARMY
+// ═══════════════════════════════════════════════════════
+async function checkShadowExtractions(){
+  var newlyUnlocked=[];
+  if(pyReady){try{var res=await pyodide.runPythonAsync('shadow_engine.check_extractions('+JSON.stringify(JSON.stringify(state.questCounts))+','+JSON.stringify(JSON.stringify(state.shadowArmy))+')');newlyUnlocked=JSON.parse(typeof res==='string'?res:res.toString());}catch(e){newlyUnlocked=checkShadowJS();}}
+  else{newlyUnlocked=checkShadowJS();}
+  newlyUnlocked.forEach(function(sid){if(state.shadowArmy.indexOf(sid)===-1){state.shadowArmy.push(sid);var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(s){updateExtractionLog(s);setTimeout(function(){showToast('SHADOW EXTRACTED — '+s.name+' HAS ARISEN!','purple');playPing();},200);}}});
+  if(newlyUnlocked.length){saveState();updateMiniBar();}
+  checkExtractionProximity();
+}
+
+function checkShadowJS(){var unlocked=[];SHADOW_SOLDIERS.forEach(function(s){if(state.shadowArmy.indexOf(s.id)===-1&&(state.questCounts[s.req]||0)>=s.reqCount)unlocked.push(s.id);});return unlocked;}
+function getShadowProgress(s){var count=state.questCounts[s.req]||0;return{count:count,needed:s.reqCount,pct:Math.min(100,Math.round(count/s.reqCount*100))};}
+function checkExtractionProximity(){var close=SHADOW_SOLDIERS.find(function(s){if(state.shadowArmy.indexOf(s.id)!==-1)return false;var p=getShadowProgress(s);return p.pct>=60&&p.pct<100;});var el=document.getElementById('extractionNotif');var desc=document.getElementById('extractionDesc');if(close){var p=getShadowProgress(close);el.style.display='block';desc.textContent=close.name+' is at '+p.pct+'% — '+(close.reqCount-p.count)+' more '+close.req.toUpperCase()+' quests needed.';}else{el.style.display='none';}}
+function updateExtractionLog(soldier){var el=document.getElementById('extractionLog');if(!el)return;var now=new Date();el.innerHTML+='<br><span class="pp">&gt;&gt;&gt; </span>shadow_engine.extract("'+soldier.id+'")<br><span style="color:var(--purple);">[ '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' ] "ARISE." — '+soldier.name+' joined.</span>';}
+
+function renderShadowArmy(){
+  var el=document.getElementById('shadowArmyContent');var html='';
+  if(state.shadowArmy.length){html+='<div class="sec accent">ACTIVE SOLDIERS ('+state.shadowArmy.length+')</div><div class="shadow-roster">';state.shadowArmy.forEach(function(sid){var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(!s)return;html+='<div class="shadow-card" style="border-color:'+s.color+';"><div class="sc-ico" style="border-color:'+s.color+';background:#06020f;">'+s.emoji+'</div><div style="flex:1;min-width:0;"><div class="sc-name">'+s.name+'</div><div class="sc-rank" style="color:'+s.color+';">'+s.grade+' GRADE</div><div class="sc-bonus">'+s.bonus+'</div><div class="sc-req" style="margin-top:4px;font-style:italic;">"'+s.story+'"</div></div><div class="sc-badge" style="background:'+s.color+';color:#000;">ACTIVE</div></div>';});html+='</div>';}
+  html+='<div class="sec">EXTRACTION TARGETS</div><div class="shadow-roster">';
+  SHADOW_SOLDIERS.forEach(function(s){if(state.shadowArmy.indexOf(s.id)!==-1)return;var p=getShadowProgress(s);html+='<div class="shadow-card shadow-locked" style="border-color:var(--border);"><div class="sc-ico" style="border-color:var(--border);background:var(--panel2);">'+s.emoji+'</div><div style="flex:1;min-width:0;"><div class="sc-name">'+s.name+'</div><div class="sc-rank" style="color:var(--muted);">'+s.grade+' GRADE</div><div class="sc-req">Complete '+s.reqCount+' '+s.req.toUpperCase()+' quests total.</div><div class="prog-bar"><div class="prog-fill" style="width:'+p.pct+'%;background:'+s.color+';"></div></div><div style="font-size:8px;color:var(--muted);margin-top:3px;">'+p.count+' / '+p.reqCount+' ('+p.pct+'%)</div></div><div class="sc-badge" style="border:1px solid var(--border);color:var(--muted);">LOCKED</div></div>';});
+  html+='</div>';el.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════
+// OBJECTIVE TIMER MODAL (shared by Story + Dungeon)
+// ═══════════════════════════════════════════════════════
+var TIMER_DEFAULT_SECONDS=45;
+var activeTimer={onComplete:null,remaining:0,total:0,interval:null};
+
+function clampTimer(s){return Math.max(20,Math.min(90,Math.round(s)||TIMER_DEFAULT_SECONDS));}
+function inferTimerSeconds(label){
+  label=(label||'').toUpperCase();
+  var m;
+  if((m=label.match(/(\d+)\s*KM/)))return clampTimer(parseInt(m[1])*18);
+  if((m=label.match(/(\d+)\s*MIN/)))return clampTimer(parseInt(m[1])*6);
+  if((m=label.match(/(\d+)/)))return clampTimer(parseInt(m[1])*0.5);
+  return TIMER_DEFAULT_SECONDS;
+}
+function formatTimer(s){var m=Math.floor(s/60),sec=s%60;return pad2(m)+':'+pad2(sec);}
+
+function openTimerModal(label,seconds,onComplete){
+  clearInterval(activeTimer.interval);
+  activeTimer.onComplete=onComplete;
+  activeTimer.remaining=seconds;
+  activeTimer.total=seconds;
+  document.getElementById('timerModalLabel').textContent=label;
+  document.getElementById('timerModalDisplay').textContent=formatTimer(seconds);
+  document.getElementById('timerModalBar').style.width='0%';
+  var btn=document.getElementById('timerModalConfirm');
+  btn.disabled=true;btn.classList.add('disabled');btn.textContent='[ HOLD — IN PROGRESS ]';
+  document.getElementById('timerModal').classList.add('open');
+  activeTimer.interval=setInterval(tickTimerModal,1000);
+}
+
+function tickTimerModal(){
+  activeTimer.remaining--;
+  if(activeTimer.remaining<=0){
+    clearInterval(activeTimer.interval);
+    document.getElementById('timerModalDisplay').textContent='00:00';
+    document.getElementById('timerModalBar').style.width='100%';
+    var btn=document.getElementById('timerModalConfirm');
+    btn.disabled=false;btn.classList.remove('disabled');btn.textContent='[ COMPLETE OBJECTIVE ]';
+    playPing();
+    return;
+  }
+  document.getElementById('timerModalDisplay').textContent=formatTimer(activeTimer.remaining);
+  var pct=Math.round((activeTimer.total-activeTimer.remaining)/activeTimer.total*100);
+  document.getElementById('timerModalBar').style.width=pct+'%';
+}
+
+function closeTimerModal(){clearInterval(activeTimer.interval);document.getElementById('timerModal').classList.remove('open');activeTimer.onComplete=null;}
+
+document.getElementById('timerModalCancel').addEventListener('click',closeTimerModal);
+document.getElementById('timerModal').addEventListener('click',function(e){if(e.target===this)closeTimerModal();});
+document.getElementById('timerModalConfirm').addEventListener('click',function(){
+  if(this.disabled)return;
+  var cb=activeTimer.onComplete;
+  closeTimerModal();
+  if(cb)cb();
+});
+
+// ═══════════════════════════════════════════════════════
+// DUNGEON (fixed)
+// ═══════════════════════════════════════════════════════
+function detectDungeon(){
+  var h=new Date().getHours();
+  var type=h>=21||h<3?'shadow':h>=3&&h<5?'ice':h>=5&&h<11?'lightning':h>=11&&h<14?'fire':'water';
+  if(!state.dungeon||state.dungeon.date!==todayStr()){state.dungeon={type:type,date:todayStr()};saveState();}
+  var d=DUNGEONS[state.dungeon.type]||DUNGEONS[type];
+  var si=document.getElementById('dungeonSI'),ico=document.getElementById('dungeonIcon'),dt=document.getElementById('dungeonType');
+  if(si){si.style.display='flex';if(ico)ico.style.color=d.color;if(dt){dt.textContent=type.toUpperCase();dt.style.color=d.color;}}
+}
+
+var dungeonEntered=false;
+
+function startDungeonTimer(){
+  if(dungeonEntered||!state.dungeon)return;
+  var d=DUNGEONS[state.dungeon.type];
+  if(!d)return;
+  openTimerModal((d.icon||'')+' '+d.name+' — CLEARING THE GATE',clampTimer(60),function(){enterDungeon();});
+}
+
+function enterDungeon(){
+  dungeonEntered=true;
+  var d=DUNGEONS[state.dungeon.type];
+  showToast('DUNGEON ENTERED — '+d.xpMult+'× XP ACTIVE!','gold');
+  renderDungeonPane();
+}
+
+function renderDungeonPane(){
+  var el=document.getElementById('dungeonContent');
+  if(!el)return;
+  var currentType=state.dungeon?state.dungeon.type:'shadow';
+  var d=DUNGEONS[currentType];
+  var html='';
+  if(d){
+    html+='<div class="dungeon-banner" style="border-color:'+d.color+';background:linear-gradient(135deg,#08090e,#0d1018);">'
+      +'<div class="db-type" style="color:'+d.color+';">⚠ '+d.type+' DETECTED</div>'
+      +'<div class="db-name">'+d.icon+' '+d.name+'</div>'
+      +'<div class="db-desc">'+d.desc+'</div>'
+      +'<div class="db-bonus">⚡ XP MULTIPLIER: '+d.xpMult.toFixed(2)+'× ACTIVE ON ALL QUESTS TODAY</div>'
+      +'<div style="margin-top:8px;font-size:9px;color:var(--muted);">DUNGEON QUESTS:</div>'
+      +d.quests.map(function(q){return '<div style="font-size:9px;color:var(--text);margin-top:3px;">'+( dungeonEntered?'✓ ':'○ ')+q+'</div>';}).join('')
+      +'<button class="db-btn" style="border-color:'+d.color+';color:'+d.color+';" onclick="startDungeonTimer()"'+(dungeonEntered?' disabled':'')+'>'+( dungeonEntered?'[ ✓ DUNGEON ACTIVE — XP BOOSTED ]':'[ ENTER DUNGEON ]')+'</button>'
+      +'</div>';
+  }
+  html+='<div class="sec">ALL DUNGEON TYPES</div>';
+  Object.keys(DUNGEONS).forEach(function(key){
+    var dd=DUNGEONS[key];var isA=state.dungeon&&state.dungeon.type===key;
+    html+='<div style="background:var(--panel);border:1px solid '+(isA?dd.color:'var(--border)')+';padding:9px 11px;margin-bottom:6px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+      +'<div style="font-size:10px;color:'+(isA?dd.color:'var(--muted)')+';font-family:var(--orb);">'+dd.icon+' '+dd.name+'</div>'
+      +'<div style="font-size:9px;color:'+dd.color+';">'+dd.xpMult+'× XP</div></div>'
+      +'<div style="font-size:8px;color:var(--muted);margin-top:3px;">'+dd.condition+'</div>'
+      +(isA?'<div style="font-size:8px;color:'+dd.color+';margin-top:3px;">▶ ACTIVE NOW</div>':'')
+      +'</div>';
+  });
+  el.innerHTML=html;
+  renderBossSection(document.getElementById('bossBattleContent'));
+}
+
+// ═══════════════════════════════════════════════════════
+// BOSS BATTLE
+// ═══════════════════════════════════════════════════════
+function checkWeeklyBoss(){
+  var day=new Date().getDay();
+  if(day===0&&!state.boss){var bt=WEEKLY_BOSSES[Math.floor(Math.random()*WEEKLY_BOSSES.length)];var mid=new Date();mid.setHours(23,59,59,999);state.boss={id:bt.id,currentHp:bt.maxHp,maxHp:bt.maxHp,deadline:mid.getTime()};saveState();}
+  if(state.boss&&Date.now()>state.boss.deadline){if(state.boss.currentHp>0){state.xp=Math.max(0,state.xp-200);state.totalXP=Math.max(0,state.totalXP-200);showToast('BOSS ESCAPED — -200 XP PENALTY','danger');}state.boss=null;saveState();updateUI();}
+}
+
+function renderBossSection(el){
+  if(!el)return;
+  var html='<div class="sec" style="margin-top:14px;">WEEKLY BOSS RAID — SUNDAY</div>';
+  if(state.boss){
+    var boss=WEEKLY_BOSSES.find(function(b){return b.id===state.boss.id;});
+    if(!boss){el.innerHTML=html;return;}
+    var pct=Math.round(state.boss.currentHp/state.boss.maxHp*100);
+    var rem=state.boss.deadline-Date.now();var hrs=Math.floor(rem/3600000),mins=Math.floor((rem%3600000)/60000);
+    html+='<div class="boss-card">'
+      +'<div class="boss-header"><div><div style="font-size:20px;margin-bottom:4px;">'+boss.icon+'</div><div class="boss-name">'+boss.name+'</div></div><div class="boss-rank">'+boss.rank+'</div></div>'
+      +'<div class="boss-hp-label"><span>HP</span><span>'+state.boss.currentHp+' / '+state.boss.maxHp+'</span></div>'
+      +'<div class="boss-hp-track"><div class="boss-hp-fill" style="width:'+pct+'%;"></div></div>'
+      +'<div class="boss-desc">'+boss.desc+'</div>'
+      +'<div class="boss-attacks">'+boss.attacks.map(function(a){return '<span class="ba">'+a+'</span>';}).join('')+'</div>'
+      +'<div class="boss-timer">⏱ '+pad2(hrs)+'h '+pad2(mins)+'m REMAINING</div>'
+      +'<div class="boss-progress">Pushup=2dmg &nbsp;|&nbsp; Squat=1dmg &nbsp;|&nbsp; 1km=100dmg<br>Reward: <span style="color:var(--gold);">⭐ TITLE: '+boss.title+' + 500 XP</span></div>'
+      +'<button class="boss-btn" onclick="document.getElementById(\'bossModal\').classList.add(\'open\')">[ REPORT DAMAGE TO BOSS ]</button>'
+      +'</div>';
+  } else {
+    var defeatedStr=(state.bossDefeated&&state.bossDefeated.length)?'✓ DEFEATED: '+state.bossDefeated.join(', '):'Next boss raid spawns on Sunday. Defeat it before midnight or face -200 XP penalty.';
+    html+='<div style="background:var(--panel);border:1px solid var(--border);padding:11px;font-size:9px;color:var(--muted);">'+defeatedStr+'</div>';
+  }
+  el.innerHTML=html;
+}
+
+function triggerBossDefeat(){
+  var boss=WEEKLY_BOSSES.find(function(b){return b.id===state.boss.id;});
+  var title=boss?boss.title:'BOSS SLAYER';
+  if(state.titles.indexOf(title)===-1)state.titles.push(title);
+  if(!state.bossDefeated)state.bossDefeated=[];
+  state.bossDefeated.push(boss?boss.name:'BOSS');
+  state.bossCount=(state.bossCount||0)+1;
+  addXP(500);
+  showToast('BOSS DEFEATED — TITLE: '+title,'purple');
+  state.boss=null;saveState();
+  checkTitleUnlocks();
+  renderDungeonPane();
+}
+
+document.getElementById('bossCancel').addEventListener('click',function(){document.getElementById('bossModal').classList.remove('open');});
+document.getElementById('bossConfirm').addEventListener('click',function(){
+  if(!state.boss)return;
+  var pushups=parseInt(document.getElementById('bossPushups').value)||0;
+  var squats=parseInt(document.getElementById('bossSquats').value)||0;
+  var km=parseFloat(document.getElementById('bossKm').value)||0;
+  var dmg=pushups*2+squats*1+km*100;
+  if(!dmg){showToast('ENTER DAMAGE VALUES');return;}
+  state.boss.currentHp=Math.max(0,state.boss.currentHp-dmg);
+  addXP(Math.round(dmg/2));
+  if(state.boss.currentHp===0){triggerBossDefeat();}else{showToast('BOSS STRUCK — '+Math.round(dmg)+' DAMAGE!','danger');}
+  saveState();document.getElementById('bossModal').classList.remove('open');renderDungeonPane();
+});
+
+// ═══════════════════════════════════════════════════════
+// STORY MODE
+// ═══════════════════════════════════════════════════════
+function renderStoryPane(){
+  var el=document.getElementById('storyContent');var html='';
+  STORY_CHAPTERS.forEach(function(ch,idx){
+    var prog=state.chapterProgress[ch.id]||{completed:false};
+    var isCompleted=prog.completed;
+    var prevDone=idx===0||(state.chapterProgress[STORY_CHAPTERS[idx-1].id]||{}).completed;
+    var isActive=!isCompleted&&prevDone;var isLocked=!isCompleted&&!isActive;
+    var statsMet=true;
+    if(ch.statReq)Object.keys(ch.statReq).forEach(function(k){if((state.stats[k]||0)<ch.statReq[k])statsMet=false;});
+    if(isActive&&!statsMet){isLocked=true;isActive=false;}
+    var cls='chapter-card'+(isCompleted?' completed-ch':isActive?' active-ch':' locked-ch');
+    var statusColor=isCompleted?'var(--success)':isActive?'var(--accent)':'var(--muted)';
+    var statusText=isCompleted?'✓ CLEARED':isActive?'▶ ACTIVE':'🔒 LOCKED';
+    var tasksDone=0;
+    html+='<div class="'+cls+'"><div class="ch-header"><div class="ch-num">CHAPTER '+ch.id+'</div><div style="font-size:8px;color:'+statusColor+';letter-spacing:.1em;">'+statusText+'</div></div><div class="ch-title">'+ch.title+'</div><div class="ch-story">'+ch.story+'</div><div style="font-size:9px;color:var(--text);line-height:1.9;">';
+    ch.tasks.forEach(function(task){var done=prog[task.key]||false;if(done)tasksDone++;html+='<div style="color:'+(done?'var(--success)':'var(--muted)')+';">'+(done?'✓':'○')+' '+task.t+'</div>';});
+    html+='</div>';
+    if(isActive){var pct=Math.round(tasksDone/ch.tasks.length*100);html+='<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%;"></div></div><div style="font-size:8px;color:var(--muted);margin-top:3px;">'+tasksDone+'/'+ch.tasks.length+' complete</div>';}
+    if(ch.statReq&&isLocked&&!statsMet)html+='<div style="font-size:8px;color:var(--danger);margin-top:6px;">REQUIRES: '+Object.keys(ch.statReq).map(function(k){return k.toUpperCase()+' '+ch.statReq[k];}).join(', ')+'</div>';
+    html+='<div class="ch-reward"><span>REWARD:</span><span>+'+ch.xpReward+' XP</span><span>'+ch.itemReward+'</span></div>';
+    if(isActive&&!isCompleted)html+='<button class="ch-btn" onclick="startChapterTimer('+ch.id+')">[ LOG CHAPTER PROGRESS ]</button>';
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+function startChapterTimer(chapterId){
+  var ch=STORY_CHAPTERS.find(function(c){return c.id===chapterId;});if(!ch)return;
+  if(!state.chapterProgress[chapterId])state.chapterProgress[chapterId]={completed:false};
+  var prog=state.chapterProgress[chapterId];
+  var undone=ch.tasks.find(function(t){return !prog[t.key];});
+  if(!undone){showToast('ALL OBJECTIVES FOR THIS CHAPTER ALREADY LOGGED');return;}
+  openTimerModal('CH.'+chapterId+' — '+undone.t,inferTimerSeconds(undone.t),function(){markChapterTask(chapterId);});
+}
+
+function markChapterTask(chapterId){
+  var ch=STORY_CHAPTERS.find(function(c){return c.id===chapterId;});if(!ch)return;
+  if(!state.chapterProgress[chapterId])state.chapterProgress[chapterId]={completed:false};
+  var prog=state.chapterProgress[chapterId];
+  var undone=ch.tasks.find(function(t){return !prog[t.key];});
+  if(undone){
+    prog[undone.key]=true;showToast('OBJECTIVE — '+undone.t,'gold');
+    var allDone=ch.tasks.every(function(t){return prog[t.key];});
+    if(allDone&&!prog.completed){
+      prog.completed=true;addXP(ch.xpReward);
+      // No duplicate items check
+      var alreadyOwned=state.ownedItems&&state.ownedItems.indexOf(ch.itemReward)!==-1;
+      if(!alreadyOwned){
+        if(!state.ownedItems)state.ownedItems=[];
+        state.ownedItems.push(ch.itemReward);
+        state.inventory.unshift({id:Date.now(),icon:ch.itemReward.split(' ')[0],name:ch.itemReward,desc:'Ch.'+chapterId+' reward',stars:Math.min(5,chapterId),acquired:new Date().toLocaleDateString(),bonus:'+'+ch.xpReward+' XP earned',unique:true});
+      }
+      showToast('CHAPTER '+chapterId+' CLEARED — '+ch.itemReward,'purple');
+      showNPCMessage('praise');
+    }
+    saveState();renderStoryPane();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// GACHA (no duplicates for equipment)
+// ═══════════════════════════════════════════════════════
+function canOpenGacha(){return(Date.now()-(state.gachaLastOpen||0))>=3600000;}
+function gacdRemaining(){var r=3600000-(Date.now()-(state.gachaLastOpen||0));if(r<=0)return null;return pad2(Math.floor(r/60000))+'m '+pad2(Math.floor((r%60000)/1000))+'s';}
+
+async function openGacha(){
+  if(!canOpenGacha()){showToast('CHEST COOLDOWN — '+gacdRemaining()+' REMAINING');return;}
+  var stars=1;
+  if(pyReady){try{var res=await pyodide.runPythonAsync('gacha_engine.pity_roll('+state.gachaPity.sinceEpic+','+state.gachaPity.sinceLegendary+')');stars=parseInt(typeof res==='string'?res:res.toString());}catch(e){stars=rollStarsJS();}}
+  else{stars=rollStarsJS();}
+  state.gachaPity.sinceLegendary=stars===5?0:(state.gachaPity.sinceLegendary||0)+1;
+  state.gachaPity.sinceEpic=stars>=4?0:(state.gachaPity.sinceEpic||0)+1;
+  state.gachaLastOpen=Date.now();
+  // Filter out already owned unique items (stars >= 3 are equipment)
+  var owned=state.ownedItems||[];
+  var pool=GACHA_POOL.filter(function(i){
+    if(i.stars<3)return i.stars===stars; // consumables ok for duplicates
+    return i.stars===stars&&owned.indexOf(i.id)===-1; // equipment no dupes
+  });
+  if(!pool.length){
+    // Fallback: give a consumable instead
+    pool=GACHA_POOL.filter(function(i){return i.stars<=2&&i.stars===Math.min(stars,2);});
+    if(!pool.length)pool=GACHA_POOL.filter(function(i){return i.stars===1;});
+  }
+  var item=pool[Math.floor(Math.random()*pool.length)];
+  // Mark as owned if equipment
+  if(item.stars>=3){if(!state.ownedItems)state.ownedItems=[];if(owned.indexOf(item.id)===-1)state.ownedItems.push(item.id);}
+  applyGachaItem(item);
+  state.inventory.unshift({id:Date.now(),icon:item.icon,name:item.name,desc:item.rarity,stars:item.stars,acquired:new Date().toLocaleDateString(),bonus:item.bonus});
+  if(state.inventory.length>50)state.inventory=state.inventory.slice(0,50);
+  saveState();showGachaReveal(item);
+}
+
+function rollStarsJS(){var r=Math.random()*100;return r<1?5:r<8?4:r<25?3:r<55?2:1;}
+
+function applyGachaItem(item){
+  var b=item.bonus;
+  function ex(pat){var m=b.match(pat);return m?parseInt(m[1]):0;}
+  var xp=ex(/\+(\d+) XP/);if(xp)addXP(xp);
+  var sv=ex(/\+(\d+) STR/);if(sv)state.stats.str=Math.min(999,state.stats.str+sv);
+  var av=ex(/\+(\d+) AGI/);if(av)state.stats.agi=Math.min(999,state.stats.agi+av);
+  var iv=ex(/\+(\d+) INT/);if(iv)state.stats.int=Math.min(999,state.stats.int+iv);
+  var vv=ex(/\+(\d+) VIT/);if(vv)state.stats.vit=Math.min(999,state.stats.vit+vv);
+  if(b.indexOf('all stats')!==-1){var am=ex(/\+(\d+) to all/)||10;STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+am);});}
+  if(b.indexOf('ALL STATS')!==-1&&b.indexOf('+30')!==-1){STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+30);});addXP(1000);}
+  if(b.indexOf('full stat boost')!==-1){STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+20);});}
+  if(b.indexOf('SHADOW EXTRACTED')!==-1){var locked=SHADOW_SOLDIERS.filter(function(s){return state.shadowArmy.indexOf(s.id)===-1;});if(locked.length){var pick=locked[Math.floor(Math.random()*locked.length)];state.shadowArmy.push(pick.id);updateExtractionLog(pick);updateMiniBar();}}
+}
+
+function showGachaReveal(item){
+  var rc={1:'#8888aa',2:'#378ADD',3:'#c9a84c',4:'#b04af7',5:'#ff6fa1'};
+  var rs={1:'★',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
+  document.getElementById('grIcon').textContent=item.icon;
+  document.getElementById('grRarity').textContent=rs[item.stars]+' '+item.rarity;
+  document.getElementById('grRarity').style.color=rc[item.stars];
+  document.getElementById('grName').textContent=item.name;
+  document.getElementById('grBonus').textContent=item.bonus;
+  document.getElementById('gachaReveal').classList.add('open');playPing();
+}
+
+document.getElementById('grClose').addEventListener('click',function(){document.getElementById('gachaReveal').classList.remove('open');renderGachaPane();renderStats();updateMiniBar();});
+
+function renderGachaPane(){
+  var el=document.getElementById('gachaContent');
+  var canOpen=canOpenGacha();
+  el.innerHTML='<div class="gacha-chest"><div class="gc-label">DAILY CHEST SYSTEM — TAP TO OPEN</div><div class="gc-chest" onclick="openGacha()">🎁</div>'+(canOpen?'<button class="gc-btn" onclick="openGacha()">[ OPEN CHEST ]</button>':'<div class="gc-cd">NEXT CHEST IN: <span style="color:var(--accent);">'+gacdRemaining()+'</span></div>')+'<div style="font-size:8px;color:var(--muted);margin-top:8px;">★ 45% &nbsp;★★ 30% &nbsp;★★★ 17% &nbsp;★★★★ 7% &nbsp;★★★★★ 1%</div><div style="font-size:8px;color:var(--muted);margin-top:4px;">PITY: '+((state.gachaPity||{}).sinceLegendary||0)+'/90 since last Legendary</div><div style="font-size:8px;color:var(--accent);margin-top:3px;">Equipment (★★★+): no duplicates</div></div>'
+    +'<div style="background:var(--panel);border:1px solid var(--border);padding:9px 11px;margin-bottom:10px;font-size:9px;line-height:2;"><div class="r1">★ COMMON — 45%</div><div class="r2">★★ UNCOMMON — 30%</div><div class="r3">★★★ RARE — 17%</div><div class="r4">★★★★ EPIC — 7%</div><div class="r5">★★★★★ LEGENDARY — 1%</div></div>';
+  var inv=document.getElementById('inventoryContent');
+  if(!state.inventory.length){inv.innerHTML='<div class="empty">NO ITEMS YET. OPEN A CHEST.</div>';return;}
+  var starsStr={1:'★',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
+  var rc={1:'var(--muted)',2:'#378ADD',3:'var(--gold)',4:'var(--purple)',5:'#ff6fa1'};
+  inv.innerHTML=state.inventory.slice(0,20).map(function(item){
+    return '<div class="inv-item"><div><div class="ii-name">'+item.icon+' '+item.name+(item.unique?' <span style="font-size:7px;color:var(--gold);">[UNIQUE]</span>':'')+'</div><div class="ii-desc">'+(item.bonus||item.desc)+' — '+item.acquired+'</div></div><div style="color:'+rc[item.stars]+';font-size:10px;">'+(starsStr[item.stars]||'★')+'</div></div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// GUILD SYSTEM (Python backend)
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// GUILD SYSTEM — FastAPI Backend Integration
+// Make sure backend is running: uvicorn main:app --reload
+// ═══════════════════════════════════════════════════════
+
+var GUILD_API = 'https://web-production-fc47f.up.railway.app';
+var _backendUserId = parseInt(localStorage.getItem('sl_guild_user_id')) || null;
+
+// ── Hunter registration ───────────────────────────────
+// Uses state.name (the hunter's display name) + currentUser (account login)
+// to build a unique, stable username for the backend.
+async function ensureBackendUser() {
+  if (_backendUserId) return _backendUserId;
+
+  // Build a stable unique username: prefer logged-in account name, else state.name
+  var rawName = (currentUser || state.name || 'HUNTER').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+  if (!rawName) rawName = 'HUNTER';
+  var username = rawName.toUpperCase();
+  var email    = rawName.toLowerCase() + '_' + Date.now() + '@shadowsystem.local';
+
+  try {
+    var res = await fetch(GUILD_API + '/users/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        username:     username,
+        email:        email,
+        hunter_rank:  getRD(state.level).r,
+        hunter_class: state.equippedTitle || 'Fighter',
+        level:        state.level || 1,
+        total_xp:     state.totalXP || 0
+      })
+    });
+    var data = await res.json();
+    if (res.ok) {
+      _backendUserId = data.id;
+      localStorage.setItem('sl_guild_user_id', _backendUserId);
+      return _backendUserId;
+    }
+    // 409 = username taken — try with timestamp suffix
+    if (res.status === 409) {
+      var res2 = await fetch(GUILD_API + '/users/', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          username:     username + '_' + Date.now().toString().slice(-4),
+          email:        rawName.toLowerCase() + '_2_' + Date.now() + '@shadowsystem.local',
+          hunter_rank:  getRD(state.level).r,
+          hunter_class: state.equippedTitle || 'Fighter',
+          level:        state.level || 1,
+          total_xp:     state.totalXP || 0
+        })
+      });
+      if (res2.ok) {
+        var d2 = await res2.json();
+        _backendUserId = d2.id;
+        localStorage.setItem('sl_guild_user_id', _backendUserId);
+        return _backendUserId;
+      }
+    }
+  } catch(e) {
+    console.warn('[Guild] Backend unreachable:', e.message);
+  }
+  return null;
+}
+
+// ── API helper ────────────────────────────────────────
+async function guildApiFetch(path, opts) {
+  opts = opts || {};
+  try {
+    var res = await fetch(GUILD_API + path, {
+      method:  opts.method || 'GET',
+      headers: {'Content-Type':'application/json'},
+      body:    opts.body ? JSON.stringify(opts.body) : undefined
+    });
+    var data = await res.json();
+    if (!res.ok) return {ok:false, error: data.detail || ('HTTP ' + res.status)};
+    return {ok:true, data:data};
+  } catch(e) {
+    return {ok:false, error:'BACKEND OFFLINE — ' + e.message};
+  }
+}
+
+// ── Render router ─────────────────────────────────────
+async function renderGuildPane() {
+  var el = document.getElementById('guildContent');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:9px;letter-spacing:.15em;">⚔️<br><br>CONNECTING TO GUILD SERVER...</div>';
+  if (state.guild) {
+    await _renderMyGuild(el);
+  } else {
+    await _renderGuildBrowser(el);
+  }
+}
+
+// ── My Guild view ─────────────────────────────────────
+async function _renderMyGuild(el) {
+  var guild = state.guild;
+  var memberData = null;
+  if (guild.backendId) {
+    var r = await guildApiFetch('/guilds/' + guild.backendId + '/members');
+    if (r.ok) memberData = r.data;
+  }
+  var memberCount = memberData ? memberData.total_members : (guild.members || 1);
+  var members     = memberData ? memberData.members : [];
+  var roleColor   = guild.role === 'Master' ? 'var(--gold)' : guild.role === 'Officer' ? 'var(--accent)' : 'var(--muted)';
+
+  var html = '<div class="guild-card my-guild">'
+    + '<div class="guild-header">'
+    + '<div><div class="guild-name">' + guild.name + '</div>'
+    + '<div style="font-size:8px;color:var(--muted);margin-top:2px;letter-spacing:.1em;">YOUR GUILD · <span style="color:' + roleColor + ';">' + (guild.role || 'MEMBER').toUpperCase() + '</span></div></div>'
+    + '<div class="guild-rank-badge" style="color:' + roleColor + ';">' + (guild.role || 'MEMBER').toUpperCase() + '</div>'
+    + '</div>'
+    + '<div class="guild-stats">'
+    + '<div class="gs-item"><div class="gs-val">' + memberCount + '</div><div class="gs-lbl">MEMBERS</div></div>'
+    + '<div class="gs-item"><div class="gs-val" style="font-size:10px;">' + (guild.weeklyXP || 0).toLocaleString() + '</div><div class="gs-lbl">WEEKLY XP</div></div>'
+    + '<div class="gs-item"><div class="gs-val" style="font-size:9px;color:var(--gold);">' + (guild.guildRank || 'Bronze Guild') + '</div><div class="gs-lbl">TIER</div></div>'
+    + '</div>';
+
+  // Live top hunters from backend
+  if (members.length > 0) {
+    html += '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);"><div class="gm-title">— TOP HUNTERS —</div>';
+    members.slice(0,5).forEach(function(m, i) {
+      var medal = i===0?'👑':i===1?'⚔️':i===2?'🛡️':'·';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:8px;border-bottom:1px solid rgba(255,255,255,0.04);">'
+        + '<span style="color:var(--muted);">' + medal + ' ' + m.username + '</span>'
+        + '<span style="color:var(--accent);">' + m.hunter_rank + ' · Lv.' + m.level + '</span>'
+        + '<span style="color:var(--muted);font-size:7px;">' + m.role + '</span>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:8px;color:var(--muted);">Complete quests to contribute XP to your guild.</div>'
+    + '<button class="guild-btn danger" onclick="leaveGuild()">[ LEAVE GUILD ]</button>'
+    + '</div>';
+
+  // Python-style readout
+  html += '<div class="py-log" style="margin-bottom:12px;">'
+    + '<span class="pp">&gt;&gt;&gt; </span>backend.get_guild_members(guild_id=' + (guild.backendId || '?') + ')<br>'
+    + '<span class="po">{ total_members: ' + memberCount + ', hunters: [' + members.slice(0,3).map(function(m){return '"'+m.username+'"';}).join(', ') + (members.length>3?', ...':'') + '] }</span><br>'
+    + '<span class="pp">&gt;&gt;&gt; </span>guild_engine.status()<br>'
+    + '<span class="po">guild="' + guild.name + '" role=' + (guild.role||'Member') + ' backendId=' + (guild.backendId||'none') + '</span>'
+    + '</div>';
+
+  el.innerHTML = html;
+}
+
+// ── Guild Browser (no guild yet) ──────────────────────
+async function _renderGuildBrowser(el) {
+  var r = await guildApiFetch('/guilds/rankings?limit=100');
+  var guilds = r.ok ? r.data.rankings : [];
+  window._guildListCache = guilds;
+
+  var html = '<div style="background:var(--panel);border:1px solid var(--border);padding:12px;margin-bottom:10px;font-size:9px;color:var(--muted);line-height:2.0;">'
+    + 'JOIN OR CREATE A GUILD<br>'
+    + '<span style="color:var(--text);">Search for a guild by name and join, or create your own.</span>'
+    + '</div>';
+
+  if (!r.ok) {
+    html += '<div style="background:var(--panel);border:1px solid #f74a6c44;padding:10px;font-size:8px;color:#f74a6c;letter-spacing:.08em;margin-bottom:10px;">'
+      + '⚠ ' + r.error + '<br>'
+      + '<span style="color:var(--muted);">Make sure uvicorn is running at localhost:8000</span>'
+      + '</div>';
+  }
+
+  html += '<button class="guild-btn primary" onclick="openCreateGuild()">[ + CREATE NEW GUILD ]</button>'
+    + '<div class="sec" style="margin-top:14px;margin-bottom:6px;">SEARCH GUILDS</div>'
+    + '<div style="display:flex;gap:6px;margin-bottom:10px;">'
+    + '<input id="guildSearchInput" placeholder="Type a guild name..." '
+    + 'style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 8px;font-size:9px;font-family:inherit;letter-spacing:.05em;outline:none;" '
+    + 'oninput="filterGuildList()" />'
+    + '<button class="guild-btn primary" style="margin:0;padding:6px 10px;" onclick="filterGuildList()">[ SEARCH ]</button>'
+    + '</div>'
+    + '<div id="guildListContainer">' + _renderGuildCards(guilds) + '</div>';
+
+  el.innerHTML = html;
+}
+
+function _renderGuildCards(guilds) {
+  if (!guilds || guilds.length === 0) {
+    return '<div style="text-align:center;padding:20px;color:var(--muted);font-size:9px;letter-spacing:.1em;">'
+      + (window._guildListCache && window._guildListCache.length > 0
+        ? 'NO GUILDS MATCH YOUR SEARCH.'
+        : 'NO GUILDS EXIST YET.<br><span style="color:var(--text);">Create the first one.')
+      + '</span></div>';
+  }
+  return guilds.map(function(g, i) {
+    return '<div class="guild-card">'
+      + '<div class="guild-header">'
+      + '<div><div class="guild-name">' + (g.emblem||'⚔️') + ' ' + g.guild_name + '</div>'
+      + '<div style="font-size:7px;color:var(--muted);margin-top:2px;letter-spacing:.08em;">' + g.guild_rank + '</div></div>'
+      + '<div class="guild-rank-badge" style="font-size:7px;background:var(--border);color:var(--text);">RANK #' + g.rank + '</div>'
+      + '</div>'
+      + '<div class="guild-stats">'
+      + '<div class="gs-item"><div class="gs-val">' + g.total_members + '</div><div class="gs-lbl">MEMBERS</div></div>'
+      + '<div class="gs-item"><div class="gs-val" style="font-size:10px;">' + g.avg_level.toFixed(1) + '</div><div class="gs-lbl">AVG LVL</div></div>'
+      + '<div class="gs-item"><div class="gs-val" style="font-size:9px;color:var(--accent);">' + g.guild_rank.replace(' Guild','') + '</div><div class="gs-lbl">TIER</div></div>'
+      + '</div>'
+      + '<button class="guild-btn primary" onclick="joinGuild(' + g.guild_id + ',\'' + g.guild_name.replace(/'/g,"\\'") + '\',\'' + g.guild_rank + '\',\'' + (g.emblem||'⚔️') + '\')">[ JOIN GUILD ]</button>'
+      + '</div>';
+  }).join('');
+}
+
+function filterGuildList() {
+  var q = ((document.getElementById('guildSearchInput')||{}).value||'').toLowerCase().trim();
+  var all = window._guildListCache || [];
+  var filtered = q ? all.filter(function(g){return g.guild_name.toLowerCase().indexOf(q)!==-1;}) : all;
+  var container = document.getElementById('guildListContainer');
+  if (container) container.innerHTML = _renderGuildCards(filtered);
+}
+
+// ── Join Guild ────────────────────────────────────────
+async function joinGuild(guildId, guildName, guildRank, emblem) {
+  var userId = await ensureBackendUser();
+  if (!userId) { showToast('BACKEND OFFLINE — CANNOT JOIN','danger'); return; }
+
+  var r = await guildApiFetch('/guilds/join', {method:'POST', body:{user_id:userId, guild_id:guildId}});
+
+  // 409 "already a member" — leave old guild on backend then retry
+  if (!r.ok && r.error && r.error.toLowerCase().indexOf('already a member') !== -1) {
+    await guildApiFetch('/guilds/leave?user_id=' + userId, {method: 'DELETE'});
+    r = await guildApiFetch('/guilds/join', {method:'POST', body:{user_id:userId, guild_id:guildId}});
+  }
+
+  if (!r.ok) { showToast(r.error.toUpperCase(), 'danger'); return; }
+
+  state.guild = {
+    backendId: guildId,
+    name:      guildName,
+    guildRank: guildRank,
+    emblem:    emblem || '⚔️',
+    role:      r.data.role || 'Member',
+    members:   0,
+    weeklyXP:  0,
+    joinedAt:  new Date().toLocaleDateString()
+  };
+  saveState();
+  showToast('JOINED ' + guildName + '!', 'success');
+  renderGuildPane();
+}
+
+// ── Leave Guild ───────────────────────────────────────
+async function leaveGuild() {
+  if (!confirm('Leave your guild? You will need to search and rejoin.')) return;
+  // Tell the backend to remove the membership so re-joining works later
+  if (_backendUserId) {
+    await guildApiFetch('/guilds/leave?user_id=' + _backendUserId, {method: 'DELETE'});
+  }
+  state.guild = null;
+  saveState();
+  showToast('LEFT GUILD', 'danger');
+  renderGuildPane();
+}
+
+// ── Create Guild modal ────────────────────────────────
+function openCreateGuild() {
+  document.getElementById('guildModalTitle').textContent = '[ CREATE GUILD ]';
+  document.getElementById('guildModal').classList.add('open');
+}
+
+document.getElementById('guildModalCancel').addEventListener('click', function() {
+  document.getElementById('guildModal').classList.remove('open');
+});
+
+document.getElementById('guildModalConfirm').addEventListener('click', async function() {
+  var nameEl  = document.getElementById('guildModalName');
+  var focusEl = document.getElementById('guildModalFocus');
+  var name    = nameEl.value.trim();
+  if (!name) { showToast('ENTER A GUILD NAME', 'danger'); return; }
+
+  var userId = await ensureBackendUser();
+  if (!userId) { showToast('BACKEND OFFLINE — CANNOT CREATE','danger'); return; }
+
+  this.disabled = true;
+  this.textContent = 'CREATING...';
+
+  // Step 1 — create the guild
+  var cr = await guildApiFetch('/guilds/', {
+    method: 'POST',
+    body: {
+      name:        name.toUpperCase(),
+      description: (focusEl ? focusEl.value : 'general') + ' focus guild',
+      emblem:      '⚔️',
+      guild_rank:  'Bronze Guild',
+      max_members: 50
+    }
+  });
+
+  if (!cr.ok) {
+    showToast(cr.error.toUpperCase(), 'danger');
+    this.disabled = false; this.textContent = '[ CREATE ]'; return;
+  }
+
+  // Step 2 — auto-join as Master
+  // If 409 "already a member", leave the old guild first then rejoin
+  var jr = await guildApiFetch('/guilds/join', {
+    method: 'POST',
+    body: {user_id: userId, guild_id: cr.data.id, role: 'Master'}
+  });
+  if (!jr.ok && jr.error && jr.error.toLowerCase().indexOf('already a member') !== -1) {
+    await guildApiFetch('/guilds/leave?user_id=' + userId, {method: 'DELETE'});
+    await guildApiFetch('/guilds/join', {
+      method: 'POST',
+      body: {user_id: userId, guild_id: cr.data.id, role: 'Master'}
+    });
+  }
+
+  state.guild = {
+    backendId: cr.data.id,
+    name:      cr.data.name,
+    guildRank: cr.data.guild_rank,
+    emblem:    '⚔️',
+    role:      'Master',
+    members:   1,
+    weeklyXP:  0,
+    joinedAt:  new Date().toLocaleDateString(),
+    isOwner:   true
+  };
+
+  document.getElementById('guildModal').classList.remove('open');
+  this.disabled = false; this.textContent = '[ CREATE ]';
+  nameEl.value = '';
+  saveState();
+  showToast('GUILD CREATED: ' + state.guild.name, 'success');
+  renderGuildPane();
+});
+
+// ═══════════════════════════════════════════════════════
+// EMERGENCY QUEST
+// ═══════════════════════════════════════════════════════
+function spawnEmergencyQuest(){
+  if(Math.random()>0.3)return;
+  var qs=[{name:'50 PUSHUPS IN 30 MINUTES',reward:'★★★★ EPIC ITEM',stat:'str',duration:30},{name:'3 KM TIMED RUN',reward:'★★★★ EPIC BADGE',stat:'agi',duration:60},{name:'100 SQUATS NOW',reward:'★★★ RARE ITEM',stat:'vit',duration:20},{name:'20 MIN MEDITATION',reward:'★★★ INT BOOST',stat:'int',duration:20}];
+  var q=qs[Math.floor(Math.random()*qs.length)];
+  state.emergencyQuest={name:q.name,reward:q.reward,deadline:Date.now()+q.duration*60000,completed:false,stat:q.stat};saveState();renderEmergencyBanner();
+}
+
+function renderEmergencyBanner(){
+  var el=document.getElementById('emergencyBanner');
+  if(!state.emergencyQuest||state.emergencyQuest.completed){el.style.display='none';return;}
+  if(Date.now()>state.emergencyQuest.deadline){el.style.display='none';state.emergencyQuest=null;saveState();return;}
+  var rem=state.emergencyQuest.deadline-Date.now();var m=Math.floor(rem/60000),s=Math.floor((rem%60000)/1000);
+  el.innerHTML='<div class="emergency-banner"><div class="eb-title">⚠ EMERGENCY QUEST</div><div class="eb-sub">'+state.emergencyQuest.name+'</div><div class="eb-timer">⏱ '+pad2(m)+':'+pad2(s)+' REMAINING</div><div class="eb-reward">REWARD: '+state.emergencyQuest.reward+'</div><button class="eb-btn" onclick="completeEmergencyQuest()">[ MISSION COMPLETE — CLAIM REWARD ]</button></div>';
+  el.style.display='block';
+}
+
+function completeEmergencyQuest(){
+  if(!state.emergencyQuest||state.emergencyQuest.completed)return;
+  if(Date.now()>state.emergencyQuest.deadline){showToast('EMERGENCY QUEST EXPIRED!','danger');state.emergencyQuest=null;saveState();document.getElementById('emergencyBanner').style.display='none';return;}
+  state.emergencyQuest.completed=true;addXP(150);
+  var eligibleItems=GACHA_POOL.filter(function(x){return x.stars>=3&&(!state.ownedItems||state.ownedItems.indexOf(x.id)===-1);});
+  if(!eligibleItems.length)eligibleItems=GACHA_POOL.filter(function(x){return x.stars<=2;});
+  var item=eligibleItems[Math.floor(Math.random()*eligibleItems.length)];
+  applyGachaItem(item);
+  if(item.stars>=3){if(!state.ownedItems)state.ownedItems=[];if(state.ownedItems.indexOf(item.id)===-1)state.ownedItems.push(item.id);}
+  state.inventory.unshift({id:Date.now(),icon:item.icon,name:item.name,desc:'Emergency reward',stars:item.stars,acquired:new Date().toLocaleDateString(),bonus:item.bonus});
+  saveState();showToast('EMERGENCY CLEARED — '+item.name,'purple');document.getElementById('emergencyBanner').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════
+// LIFESTYLE LOGGING
+// ═══════════════════════════════════════════════════════
+var pendingLifestyle=null;
+function logLifestyle(type){
+  pendingLifestyle=type;
+  var titles={study:'LOG STUDY / READING',hydration:'LOG HYDRATION',sleep:'LOG SLEEP',meditation:'LOG MEDITATION'};
+  var descs={study:'Minutes studying or reading. 30+ min = bonus INT.',hydration:'Glasses of water today. 8+ = bonus VIT.',sleep:'Hours slept. 7+ = bonus VIT.',meditation:'Minutes of practice. 15+ = bonus SEN.'};
+  var defaults={study:30,hydration:8,sleep:7,meditation:15};
+  document.getElementById('lifestyleTitle').textContent='[ '+titles[type]+' ]';
+  document.getElementById('lifestyleDesc').textContent=descs[type];
+  document.getElementById('lifestyleAmount').value=defaults[type];
+  document.getElementById('lifestyleModal').classList.add('open');
+  setTimeout(function(){document.getElementById('lifestyleAmount').focus();},100);
+}
+
+document.getElementById('lifestyleConfirm').addEventListener('click',function(){
+  var amount=parseInt(document.getElementById('lifestyleAmount').value)||0;if(!amount||!pendingLifestyle)return;
+  var statMap={study:'int',hydration:'vit',sleep:'vit',meditation:'sen'};
+  var xpMap={study:20,hydration:10,sleep:15,meditation:12};
+  var stat=statMap[pendingLifestyle];var xp=xpMap[pendingLifestyle];
+  var statGain=Math.min(20,Math.ceil(amount/10));
+  if(pendingLifestyle==='sleep'&&amount>=7){xp+=10;statGain+=5;}
+  if(pendingLifestyle==='hydration'&&amount>=8){xp+=8;statGain+=3;}
+  if(pendingLifestyle==='study'&&amount>=30){xp+=15;statGain+=5;}
+  if(pendingLifestyle==='meditation'&&amount>=15){xp+=10;statGain+=4;}
+  state.stats[stat]=Math.min(999,state.stats[stat]+statGain);
+  addXP(xp);state.lifestyleLogs=state.lifestyleLogs||[];
+  state.lifestyleLogs.unshift({type:pendingLifestyle,amount:amount,stat:stat,date:new Date().toLocaleDateString()});
+  saveState();showToast(pendingLifestyle.toUpperCase()+' LOGGED — +'+statGain+' '+stat.toUpperCase(),'gold');
+  renderStats();updateMiniBar();document.getElementById('lifestyleModal').classList.remove('open');pendingLifestyle=null;
+});
+document.getElementById('lifestyleCancel').addEventListener('click',function(){document.getElementById('lifestyleModal').classList.remove('open');pendingLifestyle=null;});
+
+// ═══════════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════════
+function renderQuests(){
+  var el=document.getElementById('qlist');
+  var dungMult=getDungeonMult(),strkMult=getStreakMult(),tot=dungMult*strkMult;
+  var html='';
+  for(var i=0;i<state.quests.length;i++){
+    var q=state.quests[i];
+    var icoMap={STRENGTH:'ti-barbell',CARDIO:'ti-run',ENDURANCE:'ti-heart',MOBILITY:'ti-leaf',FLEXIBILITY:'ti-arrows-move',INTELLIGENCE:'ti-book',VITALITY:'ti-droplet'};
+    var ico=q.done?'ti-check':(icoMap[q.cat]||'ti-star');
+    var effXP=Math.round(q.xp*tot);
+    html+='<div class="qcard'+(q.done?' done':'')+'" data-qid="'+q.id+'" data-cat="'+q.cat+'">'
+      +'<div class="qico"><i class="ti '+ico+'"></i></div>'
+      +'<div style="flex:1;min-width:0;"><div class="qname">'+q.name+'</div><div class="qcat">'+q.cat+' → '+STAT_LABELS[q.stat]+'</div></div>'
+      +'<div class="qxp">'+(q.done?'DONE':('+'+effXP+' XP'+(tot>1?'<span class="bonus">×'+tot.toFixed(2)+'</span>':'')))+'</div>'
+      +'</div>';
+  }
+  el.innerHTML=html;
+  el.querySelectorAll('.qcard').forEach(function(card){card.addEventListener('click',function(){completeQuest(parseInt(card.getAttribute('data-qid')));});});
+}
+
+function renderLog(){
+  var el=document.getElementById('llist');
+  if(!state.log.length){el.innerHTML='<div class="empty">NO RECORDS FOUND.</div>';return;}
+  el.innerHTML=state.log.slice(0,30).map(function(e){return '<div class="le"><span><span class="lt">['+e.time+']</span> '+e.text+'</span><span class="lx">+'+e.xp+' XP</span></div>';}).join('');
+}
+
+async function renderStats(){
+  STAT_KEYS.forEach(function(k){var e=document.getElementById('v-'+k);if(e)e.textContent=state.stats[k];});
+  var armyBonus={};state.shadowArmy.forEach(function(sid){var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(s){armyBonus[s.bonusStat]=(armyBonus[s.bonusStat]||0)+s.bonusPct;}});
+  var boxes=document.getElementById('statBoxes');
+  if(boxes){boxes.innerHTML=STAT_KEYS.map(function(k){var bonus=armyBonus[k]?'<div style="font-size:8px;color:var(--success);margin-top:2px;">+'+armyBonus[k]+'% (army)</div>':'';return '<div class="sc"><div class="slbl">'+STAT_LABELS[k]+'</div><div class="sval" style="color:'+BAR_COLORS[k]+';">'+state.stats[k]+'</div>'+bonus+'</div>';}).join('');}
+  var mx=Math.max(100,Math.max.apply(null,STAT_KEYS.map(function(k){return state.stats[k];})));
+  var sbars=document.getElementById('sbars');
+  if(sbars){sbars.innerHTML=STAT_KEYS.map(function(k){var pct=Math.round(state.stats[k]/mx*100);return '<div class="sbr"><div class="sbl">'+STAT_LABELS[k]+'</div><div class="sbt"><div class="sbf" style="width:'+pct+'%;background:'+BAR_COLORS[k]+';"></div></div><div class="sbv">'+state.stats[k]+'</div></div>';}).join('');}
+  var sd=await computeStreak();
+  var mult=sd.current>=14?'2.0x':sd.current>=7?'1.5x':sd.current>=3?'1.25x':'1.0x';
+  var pyLog=document.getElementById('pyLogStreak');
+  if(pyLog){var pySource=pyReady?'Pyodide Python 3.11':'JS Fallback';pyLog.innerHTML=['<span class="pp">&gt;&gt;&gt; </span># Engine: '+pySource,'<span class="pp">&gt;&gt;&gt; </span>streak_calc.compute(active_days='+sd.days.length+')','<span class="po">{ current: '+sd.current+', best: '+sd.best+', total: '+sd.days.length+' }</span>','<span class="pp">&gt;&gt;&gt; </span>streak_calc.xp_multiplier('+sd.current+')','<span class="po">'+mult+' — '+(sd.current>=3?mult+' STREAK BONUS':'NO BONUS YET')+'</span>','<span class="pp">&gt;&gt;&gt; </span>guild_engine.status()','<span class="po">guild='+(state.guild?'"'+state.guild.name+'" weeklyXP='+state.guild.weeklyXP:'"NONE"')+'</span>','<span class="pp">&gt;&gt;&gt; </span>title_engine.equipped()','<span class="po">'+(state.equippedTitle||'None')+'</span>'].join('<br>');}
+  var calEl=document.getElementById('streakCal');
+  if(calEl){var today=new Date();var calHtml='';for(var d=27;d>=0;d--){var dd=new Date(today);dd.setDate(today.getDate()-d);var ds=dd.toDateString();var on=sd.days.indexOf(ds)!==-1;calHtml+='<div class="dc'+(on?' on':'')+(d===0?' today':'')+'" title="'+ds+'">'+dd.getDate()+'</div>';}calEl.innerHTML=calHtml;}
+  var msEl=document.getElementById('milestones');
+  if(msEl){msEl.innerHTML=MILESTONES.map(function(ms){var u=sd.best>=ms.days;return '<div class="ms" style="border-color:'+(u?ms.c:'var(--border)')+'"><div><div style="font-size:10px;color:'+(u?ms.c:'var(--muted)')+';letter-spacing:.06em;">'+ms.label+'</div><div style="font-size:8px;color:var(--muted);margin-top:2px;">'+ms.reward+'</div></div><div style="font-size:10px;color:'+(u?ms.c:'var(--muted)')+';">'+(u?'UNLOCKED':ms.days+' DAYS')+'</div></div>';}).join('');}
+  var outEl=document.getElementById('outlierLog');
+  if(outEl){
+    if(state.outlierFlags&&state.outlierFlags.length){
+      outEl.innerHTML=state.outlierFlags.map(function(f){return '<div class="outlier-item"><div class="oi-top"><span>⚠ FLAGGED — '+f.time+'</span><span>'+f.ratio+'× NORMAL</span></div><div class="oi-detail">Requested '+f.requested+' XP vs. recent avg '+f.average+' XP/activity → granted '+f.granted+' XP (diminishing returns applied)</div></div>';}).join('');
+    } else {
+      outEl.innerHTML='<div class="empty">NO ANOMALIES DETECTED — ACTIVITY WITHIN NORMAL RANGE.</div>';
+    }
+  }
+}
+
+function updateMiniBar(){['str','agi','int','vit','sen'].forEach(function(k){var e=document.getElementById('mini-'+k);if(e)e.textContent=state.stats[k];});var ae=document.getElementById('mini-army');if(ae)ae.textContent=state.shadowArmy.length+'/'+SHADOW_SOLDIERS.length;}
+function updateStreakBar(sd){document.getElementById('curStreak').textContent=sd.current+'D';document.getElementById('bestStreak').textContent=sd.best+'D';document.getElementById('totalQ').textContent=state.streak.totalQuests;}
+
+async function renderRankPane(){
+  var sd=await computeStreak();
+  var myScore=state.level*500+state.totalXP+sd.current*50;
+  var all=GLOBAL_HUNTERS.map(function(h){return{name:h.name,level:h.level,score:h.xp+h.streak*50,streak:h.streak,rank:h.rank,isMe:false};});
+  all.push({name:state.name,level:state.level,score:myScore,streak:sd.current,rank:getRD(state.level).r,isMe:true,totalXP:state.totalXP});
+  all.sort(function(a,b){return b.score-a.score;});
+  var myPos=all.findIndex(function(h){return h.isMe;})+1;
+  var rankColors={S:'#b04af7',A:'#f74a6c',B:'#c9a84c',C:'#378ADD',D:'#2adb82',E:'#8888aa'};
+  document.getElementById('pyLogRank').innerHTML=['<span class="pp">&gt;&gt;&gt; </span>ranking_engine.score("'+state.name+'")','<span class="po">level('+state.level+')×500 + xp('+state.totalXP+') + streak('+sd.current+')×50 = '+myScore+'</span>','<span class="pp">&gt;&gt;&gt; </span>ranking_engine.position("'+state.name+'")','<span class="po">rank = #'+myPos+' of '+all.length+' hunters</span>','<span class="pp">&gt;&gt;&gt; </span>shadow_army.power_score()','<span class="po">army_size='+state.shadowArmy.length+' | titles=['+((state.titles||[]).join(', ')||'NONE')+']</span>'].join('<br>');
+  var medals=['🥇','🥈','🥉'];
+  document.getElementById('rankBody').innerHTML=all.map(function(h,i){var pos=i+1;return '<tr class="'+(h.isMe?'me':'')+'"><td>'+(pos<=3?medals[pos-1]:pos)+'</td><td style="color:'+(h.isMe?'var(--accent)':'var(--text)')+';">'+(h.isMe?'▶ ':'')+h.name+'</td><td style="color:'+rankColors[h.rank]+';">'+h.rank+'</td><td>'+h.level+'</td><td>'+h.score+'</td><td>'+h.streak+'d</td></tr>';}).join('');
+}
+
+function updateUI(){
+  var rd=getRD(state.level);
+  var pct=Math.round(state.xp/state.xpNeeded*100);
+  document.getElementById('xpFill').style.width=pct+'%';
+  document.getElementById('xpLbl').textContent=state.xp+' / '+state.xpNeeded;
+  document.getElementById('lvlNum').textContent=state.level;
+  document.getElementById('heroTitle').textContent=rd.r+'-RANK — '+RANK_TITLES[rd.r];
+  document.getElementById('heroTitle').style.color=rd.c;
+  document.getElementById('rankPip').textContent=rd.r;
+  document.getElementById('rankPip').style.background=rd.c;
+  document.getElementById('avBox').style.borderColor=rd.c;
+  document.getElementById('avBox').querySelector('i').style.color=rd.c;
+  document.getElementById('heroName').textContent=state.name;
+  updateEquippedTitle();
+  updateMiniBar();
+}
+
+// ═══════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+var TABS=['quests','dungeon','story','shadow','gacha','stats','rank','titles','guild'];
+function switchTab(tab){
+  TABS.forEach(function(t){
+    document.getElementById('pane-'+t).style.display=t===tab?'block':'none';
+    var nb=document.getElementById('nb-'+t);if(nb)nb.classList.toggle('active',t===tab);
+  });
+  if(tab==='dungeon')renderDungeonPane();
+  if(tab==='story')renderStoryPane();
+  if(tab==='shadow')renderShadowArmy();
+  if(tab==='gacha')renderGachaPane();
+  if(tab==='stats')renderStats();
+  if(tab==='rank')renderRankPane();
+  if(tab==='titles'){renderTitlesPane();updateEquippedTitle();}
+  if(tab==='guild')renderGuildPane();
+}
+TABS.forEach(function(t){var nb=document.getElementById('nb-'+t);if(nb)nb.addEventListener('click',function(){switchTab(t);});});
+
+// ═══════════════════════════════════════════════════════
+// RENAME
+// ═══════════════════════════════════════════════════════
+function openRenameModal(){document.getElementById('renameInput').value=state.name;document.getElementById('renameModal').classList.add('open');setTimeout(function(){document.getElementById('renameInput').focus();},100);}
+document.getElementById('renameBtn').addEventListener('click',openRenameModal);
+document.getElementById('heroName').addEventListener('click',openRenameModal);
+document.getElementById('renameCancel').addEventListener('click',function(){document.getElementById('renameModal').classList.remove('open');});
+document.getElementById('renameConfirm').addEventListener('click',function(){var n=document.getElementById('renameInput').value.trim();if(n){state.name=n.toUpperCase();saveState();updateUI();}document.getElementById('renameModal').classList.remove('open');});
+
+// ═══════════════════════════════════════════════════════
+// ACCOUNT SIGN UP / LOG IN / LOG OUT
+// (Python-powered validation + hashing, with JS fallback)
+// ═══════════════════════════════════════════════════════
+function jsValidateSignup(username,password,confirm){
+  var errors=[];
+  var u=(username||'').trim();
+  if(u.length<3||u.length>16)errors.push('Hunter name must be 3-16 characters.');
+  else if(!/^[A-Za-z0-9_]+$/.test(u))errors.push('Hunter name may only contain letters, numbers, and underscores.');
+  if((password||'').length<6)errors.push('Password must be at least 6 characters.');
+  if(password!==confirm)errors.push('Passwords do not match.');
+  return {valid:errors.length===0,errors:errors};
+}
+
+function cyrb53(str,seed){
+  var h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;
+  for(var i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (4294967296*(2097151&h2)+(h1>>>0)).toString(16);
+}
+function jsHashPassword(password,salt){
+  // Non-cryptographic fallback for when Pyodide isn't available — fine
+  // for a local-only save-slot separator, not a substitute for real
+  // server-side auth (this app has no backend either way).
+  var out=salt+'::'+password;
+  for(var i=0;i<4;i++)out=cyrb53(out,i)+cyrb53(password+salt+i,i+1);
+  return out;
+}
+
+async function validateSignup(username,password,confirm){
+  if(pyReady){
+    try{
+      var res=await pyodide.runPythonAsync('auth_engine.validate_signup('+JSON.stringify(username)+','+JSON.stringify(password)+','+JSON.stringify(confirm)+')');
+      return JSON.parse(typeof res==='string'?res:res.toString());
+    }catch(e){}
+  }
+  return jsValidateSignup(username,password,confirm);
+}
+
+async function hashPassword(password,salt){
+  if(pyReady){
+    try{
+      var res=await pyodide.runPythonAsync('auth_engine.hash_password('+JSON.stringify(password)+','+JSON.stringify(salt)+')');
+      return typeof res==='string'?res:res.toString();
+    }catch(e){}
+  }
+  return jsHashPassword(password,salt);
+}
+
+function genSalt(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+
+function switchAuthTab(tab){
+  document.getElementById('authTabLogin').classList.toggle('active',tab==='login');
+  document.getElementById('authTabSignup').classList.toggle('active',tab==='signup');
+  document.getElementById('authFormLogin').style.display=tab==='login'?'flex':'none';
+  document.getElementById('authFormSignup').style.display=tab==='signup'?'flex':'none';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('signupError').textContent='';
+}
+
+function hideAuthOverlay(){document.getElementById('authOverlay').classList.add('hidden');}
+
+function migrateLegacyState(username){
+  try{
+    var legacy=localStorage.getItem('sl_shadow_v6')||localStorage.getItem('sl_shadow_v5');
+    if(legacy)localStorage.setItem('sl_shadow_v6_'+username,legacy);
+  }catch(e){}
+}
+
+async function handleSignup(){
+  var username=document.getElementById('signupUsername').value.trim();
+  var password=document.getElementById('signupPassword').value;
+  var confirm=document.getElementById('signupConfirm').value;
+  var errEl=document.getElementById('signupError');
+  errEl.textContent='';
+  var v=await validateSignup(username,password,confirm);
+  if(!v.valid){errEl.textContent=v.errors[0];return;}
+  if(findAccount(username)){errEl.textContent='That hunter name is already registered.';return;}
+  var accs=loadAccounts();
+  var isFirstAccount=accs.length===0;
+  var salt=genSalt();
+  var hash=await hashPassword(password,salt);
+  accs.push({username:username,salt:salt,hash:hash,createdAt:Date.now()});
+  saveAccounts(accs);
+  if(isFirstAccount)migrateLegacyState(username);
+  try{localStorage.setItem(SESSION_KEY,username);}catch(e){}
+  currentUser=username;
+  state=loadState();
+  if(state.name==='HUNTER')state.name=username.toUpperCase();
+  saveState();
+  hideAuthOverlay();
+  showToast('HUNTER REGISTERED — WELCOME, '+username.toUpperCase(),'success');
+  init();
+}
+
+async function handleLogin(){
+  var username=document.getElementById('loginUsername').value.trim();
+  var password=document.getElementById('loginPassword').value;
+  var errEl=document.getElementById('loginError');
+  errEl.textContent='';
+  var acc=findAccount(username);
+  if(!acc){errEl.textContent='No hunter record found with that name.';return;}
+  var hash=await hashPassword(password,acc.salt);
+  if(hash!==acc.hash){errEl.textContent='Incorrect password.';return;}
+  try{localStorage.setItem(SESSION_KEY,acc.username);}catch(e){}
+  currentUser=acc.username;
+  state=loadState();
+  hideAuthOverlay();
+  showToast('WELCOME BACK, '+acc.username.toUpperCase(),'success');
+  init();
+}
+
+function logOut(){
+  if(!confirm('Log out of the current hunter account?'))return;
+  saveState();
+  try{localStorage.removeItem(SESSION_KEY);}catch(e){}
+  currentUser=null;
+  document.getElementById('loginUsername').value='';
+  document.getElementById('loginPassword').value='';
+  switchAuthTab('login');
+  document.getElementById('authOverlay').classList.remove('hidden');
+}
+
+document.getElementById('authTabLogin').addEventListener('click',function(){switchAuthTab('login');});
+document.getElementById('authTabSignup').addEventListener('click',function(){switchAuthTab('signup');});
+document.getElementById('loginBtn').addEventListener('click',handleLogin);
+document.getElementById('signupBtn').addEventListener('click',handleSignup);
+document.getElementById('logoutBtn').addEventListener('click',logOut);
+['loginUsername','loginPassword'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')handleLogin();});});
+['signupUsername','signupPassword','signupConfirm'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')handleSignup();});});
+
+// ═══════════════════════════════════════════════════════
+// QUEST CONTROLS
+// ═══════════════════════════════════════════════════════
+document.getElementById('refreshBtn').addEventListener('click',function(){if(!confirm('Generate new daily quests? Current progress resets.'))return;generateDailyQuests();renderQuests();checkWarning();showToast('NEW DAILY QUESTS GENERATED');});
+document.getElementById('addBtn').addEventListener('click',function(){document.getElementById('qModalName').value='';document.getElementById('qModalXP').value='25';document.getElementById('questModal').classList.add('open');setTimeout(function(){document.getElementById('qModalName').focus();},100);});
+document.getElementById('qModalCancel').addEventListener('click',function(){document.getElementById('questModal').classList.remove('open');});
+document.getElementById('qModalConfirm').addEventListener('click',function(){
+  var name=document.getElementById('qModalName').value.trim();if(!name){document.getElementById('qModalName').focus();return;}
+  var xp=Math.min(100,Math.max(10,parseInt(document.getElementById('qModalXP').value)||25));
+  var cats=[['STRENGTH','str'],['CARDIO','agi'],['ENDURANCE','vit'],['MOBILITY','int'],['FLEXIBILITY','sen'],['INTELLIGENCE','int'],['VITALITY','vit']];
+  var idx=parseInt(document.getElementById('qModalCat').value)||0;
+  state.quests.push({id:Date.now(),name:name.toUpperCase(),xp:xp,stat:cats[idx][1],cat:cats[idx][0],done:false});
+  saveState();renderQuests();checkWarning();showToast('CUSTOM QUEST ADDED');
+  document.getElementById('questModal').classList.remove('open');
+});
+
+['questModal','renameModal','lifestyleModal','bossModal','guildModal'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
+
+// ═══════════════════════════════════════════════════════
+// TIMERS
+// ═══════════════════════════════════════════════════════
+setInterval(function(){if(state.emergencyQuest&&!state.emergencyQuest.completed)renderEmergencyBanner();},5000);
+setInterval(function(){var gp=document.getElementById('pane-gacha');if(gp&&gp.style.display!=='none')renderGachaPane();},15000);
+setInterval(function(){var done=state.quests.filter(function(q){return q.done;}).length;if(done===0&&state.quests.length>0){var now=new Date().getHours();if(now>=18)showNPCMessage('warning');}},3600000);
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+async function init(){
+  checkAndRefreshDailyQuests();
+  var sd=await computeStreak();
+  updateStreakBar(sd);
+  updateUI();
+  renderQuests();
+  renderLog();
+  checkWarning();
+  await checkShadowExtractions();
+  detectDungeon();
+  checkWeeklyBoss();
+  renderEmergencyBanner();
+  checkPenalty();
+  await checkTitleUnlocks();
+  lastRankLetter=getRD(state.level).r;
+  var mood=determineNPCMood();
+  setTimeout(function(){showNPCMessage(mood);},800);
+}
+
+// If a valid session already exists (returning hunter, same device),
+// skip straight past the auth overlay. Otherwise wait for sign up / log in.
+if(currentUser){
+  hideAuthOverlay();
+  init();
+} else {
+  switchAuthTab('login');
+  setTimeout(function(){document.getElementById('loginUsername').focus();},150);
+}
+
+initPyodide().then(function(){
+  var statsPane=document.getElementById('pane-stats');
+  if(statsPane&&statsPane.style.display!=='none')renderStats();
+});
+
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+
+// ═══════════════════════════════════════════════════════
+// BACKEND CONNECTION TESTER
+// Open browser console and run: testGuildBackend()
+// Or tap the hidden test button (triple-tap the footer)
+// ═══════════════════════════════════════════════════════
+window.testGuildBackend = async function() {
+  console.log('%c⚔️ SHADOW SYSTEM — Guild Backend Test', 'color:#b04af7;font-size:14px;font-weight:bold;');
+  var results = [];
+
+  // Test 1: Health check
+  try {
+    var r = await fetch('http://localhost:8000/');
+    var d = await r.json();
+    results.push(r.ok
+      ? '✅ HEALTH CHECK — ' + d.status
+      : '❌ HEALTH CHECK FAILED — HTTP ' + r.status);
+  } catch(e) { results.push('❌ HEALTH CHECK — Backend offline. Run: uvicorn main:app --reload'); }
+
+  // Test 2: Register hunter
+  var uid = null;
+  try {
+    var name = 'TEST_HUNTER_' + Date.now().toString().slice(-5);
+    var r2 = await fetch('http://localhost:8000/users/', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username:name, email:name+'@test.local', hunter_rank:'S', hunter_class:'Fighter', level:99, total_xp:99999})
+    });
+    var d2 = await r2.json();
+    uid = d2.id;
+    results.push(r2.ok ? '✅ REGISTER HUNTER — ID=' + uid + ' username=' + d2.username : '❌ REGISTER HUNTER — ' + d2.detail);
+  } catch(e) { results.push('❌ REGISTER HUNTER — ' + e.message); }
+
+  // Test 3: Create guild
+  var gid = null;
+  try {
+    var gname = 'TEST_GUILD_' + Date.now().toString().slice(-5);
+    var r3 = await fetch('http://localhost:8000/guilds/', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name:gname, description:'test', emblem:'⚔️', guild_rank:'Bronze Guild', max_members:50})
+    });
+    var d3 = await r3.json();
+    gid = d3.id;
+    results.push(r3.ok ? '✅ CREATE GUILD — ID=' + gid + ' name=' + d3.name : '❌ CREATE GUILD — ' + d3.detail);
+  } catch(e) { results.push('❌ CREATE GUILD — ' + e.message); }
+
+  // Test 4: Join guild
+  if (uid && gid) {
+    try {
+      var r4 = await fetch('http://localhost:8000/guilds/join', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({user_id:uid, guild_id:gid, role:'Master'})
+      });
+      var d4 = await r4.json();
+      results.push(r4.ok ? '✅ JOIN GUILD — role=' + d4.role : '❌ JOIN GUILD — ' + d4.detail);
+    } catch(e) { results.push('❌ JOIN GUILD — ' + e.message); }
+  }
+
+  // Test 5: Get members
+  if (gid) {
+    try {
+      var r5 = await fetch('http://localhost:8000/guilds/' + gid + '/members');
+      var d5 = await r5.json();
+      results.push(r5.ok ? '✅ GET MEMBERS — ' + d5.total_members + ' member(s) in ' + d5.guild_name : '❌ GET MEMBERS — ' + d5.detail);
+    } catch(e) { results.push('❌ GET MEMBERS — ' + e.message); }
+  }
+
+  // Test 6: Rankings
+  try {
+    var r6 = await fetch('http://localhost:8000/guilds/rankings');
+    var d6 = await r6.json();
+    results.push(r6.ok ? '✅ RANKINGS — ' + d6.total_guilds + ' total guild(s)' : '❌ RANKINGS — ' + d6.detail);
+  } catch(e) { results.push('❌ RANKINGS — ' + e.message); }
+
+  // Test 7: Your hunter ID
+  var yourId = localStorage.getItem('sl_guild_user_id');
+  results.push(yourId ? '✅ YOUR HUNTER ID — ' + yourId + ' (cached)' : 'ℹ️ YOUR HUNTER ID — not registered yet (open Guild tab first)');
+
+  console.log('%c\n' + results.join('\n') + '\n', 'font-family:monospace;font-size:12px;');
+  console.log('%cTo reset your backend user: localStorage.removeItem("sl_guild_user_id")', 'color:#888;font-size:10px;');
+  return results;
+};
+
+// Triple-tap footer to open test panel in UI
+(function(){
+  var taps=0,timer;
+  document.addEventListener('click',function(e){
+    if(e.target.closest('footer,#footer,.footer')||e.clientY>window.innerHeight-60){
+      taps++;clearTimeout(timer);
+      timer=setTimeout(function(){
+        if(taps>=3){
+          testGuildBackend().then(function(res){
+            var panel=document.createElement('div');
+            panel.style.cssText='position:fixed;bottom:60px;left:10px;right:10px;background:#0a0015;border:1px solid #b04af7;padding:12px;font-family:monospace;font-size:9px;z-index:9999;max-height:200px;overflow-y:auto;letter-spacing:.05em;';
+            panel.innerHTML='<div style="color:#b04af7;margin-bottom:8px;font-weight:bold;">⚔️ BACKEND TEST RESULTS</div>'
+              + res.map(function(r){return '<div style="margin-bottom:4px;color:'+(r.startsWith('✅')?'#2adb82':r.startsWith('❌')?'#f74a6c':'#888')+'">'+ r +'</div>';}).join('')
+              + '<div style="margin-top:8px;color:#555;font-size:8px;">Tap to close</div>';
+            panel.onclick=function(){panel.remove();};
+            document.body.appendChild(panel);
+          });
+        }
+        taps=0;
+      },500);
+    }
+  });
+})();
+</script>
+</body>
+</html>
+
+
