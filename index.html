@@ -2133,7 +2133,7 @@ async function _renderGuildBrowser(el) {
   if (!r.ok) {
     html += '<div style="background:var(--panel);border:1px solid #f74a6c44;padding:10px;font-size:8px;color:#f74a6c;letter-spacing:.08em;margin-bottom:10px;">'
       + '⚠ ' + r.error + '<br>'
-      + '<span style="color:var(--muted);">Make sure uvicorn is running at localhost:8000</span>'
+      + '<span style="color:var(--muted);">Make sure uvicorn is running at web-production-fc47f.up.railway.app</span>'
       + '</div>';
   }
 
@@ -2688,7 +2688,7 @@ window.testGuildBackend = async function() {
 
   // Test 1: Health check
   try {
-    var r = await fetch('http://localhost:8000/');
+    var r = await fetch(GUILD_API + '/');
     var d = await r.json();
     results.push(r.ok
       ? '✅ HEALTH CHECK — ' + d.status
@@ -2699,7 +2699,7 @@ window.testGuildBackend = async function() {
   var uid = null;
   try {
     var name = 'TEST_HUNTER_' + Date.now().toString().slice(-5);
-    var r2 = await fetch('http://localhost:8000/users/', {
+    var r2 = await fetch(GUILD_API + '/users/', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({username:name, email:name+'@test.local', hunter_rank:'S', hunter_class:'Fighter', level:99, total_xp:99999})
     });
@@ -2712,7 +2712,7 @@ window.testGuildBackend = async function() {
   var gid = null;
   try {
     var gname = 'TEST_GUILD_' + Date.now().toString().slice(-5);
-    var r3 = await fetch('http://localhost:8000/guilds/', {
+    var r3 = await fetch(GUILD_API + '/guilds/', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({name:gname, description:'test', emblem:'⚔️', guild_rank:'Bronze Guild', max_members:50})
     });
@@ -2724,7 +2724,7 @@ window.testGuildBackend = async function() {
   // Test 4: Join guild
   if (uid && gid) {
     try {
-      var r4 = await fetch('http://localhost:8000/guilds/join', {
+      var r4 = await fetch(GUILD_API + '/guilds/join', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({user_id:uid, guild_id:gid, role:'Master'})
       });
@@ -2736,7 +2736,7 @@ window.testGuildBackend = async function() {
   // Test 5: Get members
   if (gid) {
     try {
-      var r5 = await fetch('http://localhost:8000/guilds/' + gid + '/members');
+      var r5 = await fetch(GUILD_API + '/guilds/' + gid + '/members');
       var d5 = await r5.json();
       results.push(r5.ok ? '✅ GET MEMBERS — ' + d5.total_members + ' member(s) in ' + d5.guild_name : '❌ GET MEMBERS — ' + d5.detail);
     } catch(e) { results.push('❌ GET MEMBERS — ' + e.message); }
@@ -2744,7 +2744,7 @@ window.testGuildBackend = async function() {
 
   // Test 6: Rankings
   try {
-    var r6 = await fetch('http://localhost:8000/guilds/rankings');
+    var r6 = await fetch(GUILD_API + '/guilds/rankings');
     var d6 = await r6.json();
     results.push(r6.ok ? '✅ RANKINGS — ' + d6.total_guilds + ' total guild(s)' : '❌ RANKINGS — ' + d6.detail);
   } catch(e) { results.push('❌ RANKINGS — ' + e.message); }
