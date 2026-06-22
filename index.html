@@ -439,6 +439,8 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
     <div class="auth-form" id="authFormSignup" style="display:none;">
       <label class="auth-label">CHOOSE HUNTER NAME</label>
       <input class="auth-input" id="signupUsername" type="text" autocomplete="username" placeholder="3–16 characters" maxlength="16">
+      <label class="auth-label">EMAIL</label>
+      <input class="auth-input" id="signupEmail" type="email" autocomplete="email" placeholder="your@email.com" maxlength="128">
       <label class="auth-label">CREATE PASSWORD</label>
       <input class="auth-input" id="signupPassword" type="password" autocomplete="new-password" placeholder="Min. 6 characters">
       <label class="auth-label">CONFIRM PASSWORD</label>
@@ -447,7 +449,7 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
       <button class="auth-btn" id="signupBtn">[ REGISTER HUNTER ]</button>
     </div>
 
-    <div class="auth-note">⚠ SYSTEM NOTICE: hunter records are stored locally on this device only — there is no remote server.</div>
+    <div class="auth-note">⚠ SYSTEM NOTICE: hunter records are stored on the Shadow System server — log in from any device.</div>
   </div>
 </div>
 
@@ -1129,25 +1131,19 @@ var ALL_TITLES=[
 ];
 
 // ═══════════════════════════════════════════════════════
-// ACCOUNTS — local hunter registration (client-side only,
-// no backend — see auth-note in the UI for what this means)
+// ACCOUNTS — server-side auth (FastAPI backend)
+// Session object stored in localStorage after login.
 // ═══════════════════════════════════════════════════════
-var ACCOUNTS_KEY='sl_shadow_accounts';
 var SESSION_KEY='sl_shadow_session';
 
-function loadAccounts(){try{return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)||'[]');}catch(e){return [];}}
-function saveAccounts(accs){try{localStorage.setItem(ACCOUNTS_KEY,JSON.stringify(accs));}catch(e){}}
-function findAccount(username){var u=(username||'').trim().toLowerCase();return loadAccounts().find(function(a){return a.username.toLowerCase()===u;});}
+function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY));}catch(e){return null;}}
+function setSession(user){try{localStorage.setItem(SESSION_KEY,JSON.stringify(user));}catch(e){}}
+function clearSession(){try{localStorage.removeItem(SESSION_KEY);}catch(e){}}
 
 // Resolve any existing session synchronously so loadState() below knows
 // which save-slot to read on first paint.
-var currentUser=(function(){
-  try{
-    var sess=localStorage.getItem(SESSION_KEY);
-    if(sess&&loadAccounts().some(function(a){return a.username===sess;}))return sess;
-  }catch(e){}
-  return null;
-})();
+var _sess=getSession();
+var currentUser=(_sess&&_sess.username)?_sess.username:null;
 
 // ═══════════════════════════════════════════════════════
 // STATE
@@ -2495,20 +2491,14 @@ function jsValidateSignup(username,password,confirm){
   return {valid:errors.length===0,errors:errors};
 }
 
-function cyrb53(str,seed){
-  var h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;
-  for(var i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
-  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
-  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
-  return (4294967296*(2097151&h2)+(h1>>>0)).toString(16);
-}
-function jsHashPassword(password,salt){
-  // Non-cryptographic fallback for when Pyodide isn't available — fine
-  // for a local-only save-slot separator, not a substitute for real
-  // server-side auth (this app has no backend either way).
-  var out=salt+'::'+password;
-  for(var i=0;i<4;i++)out=cyrb53(out,i)+cyrb53(password+salt+i,i+1);
-  return out;
+function jsValidateSignup(username,password,confirm){
+  var errors=[];
+  var u=(username||'').trim();
+  if(u.length<3||u.length>16)errors.push('Hunter name must be 3-16 characters.');
+  else if(!/^[A-Za-z0-9_]+$/.test(u))errors.push('Hunter name may only contain letters, numbers, and underscores.');
+  if((password||'').length<6)errors.push('Password must be at least 6 characters.');
+  if(password!==confirm)errors.push('Passwords do not match.');
+  return {valid:errors.length===0,errors:errors};
 }
 
 async function validateSignup(username,password,confirm){
@@ -2520,18 +2510,6 @@ async function validateSignup(username,password,confirm){
   }
   return jsValidateSignup(username,password,confirm);
 }
-
-async function hashPassword(password,salt){
-  if(pyReady){
-    try{
-      var res=await pyodide.runPythonAsync('auth_engine.hash_password('+JSON.stringify(password)+','+JSON.stringify(salt)+')');
-      return typeof res==='string'?res:res.toString();
-    }catch(e){}
-  }
-  return jsHashPassword(password,salt);
-}
-
-function genSalt(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
 
 function switchAuthTab(tab){
   document.getElementById('authTabLogin').classList.toggle('active',tab==='login');
@@ -2553,28 +2531,32 @@ function migrateLegacyState(username){
 
 async function handleSignup(){
   var username=document.getElementById('signupUsername').value.trim();
+  var email=document.getElementById('signupEmail').value.trim();
   var password=document.getElementById('signupPassword').value;
   var confirm=document.getElementById('signupConfirm').value;
   var errEl=document.getElementById('signupError');
   errEl.textContent='';
   var v=await validateSignup(username,password,confirm);
   if(!v.valid){errEl.textContent=v.errors[0];return;}
-  if(findAccount(username)){errEl.textContent='That hunter name is already registered.';return;}
-  var accs=loadAccounts();
-  var isFirstAccount=accs.length===0;
-  var salt=genSalt();
-  var hash=await hashPassword(password,salt);
-  accs.push({username:username,salt:salt,hash:hash,createdAt:Date.now()});
-  saveAccounts(accs);
-  if(isFirstAccount)migrateLegacyState(username);
-  try{localStorage.setItem(SESSION_KEY,username);}catch(e){}
-  currentUser=username;
-  state=loadState();
-  if(state.name==='HUNTER')state.name=username.toUpperCase();
-  saveState();
-  hideAuthOverlay();
-  showToast('HUNTER REGISTERED — WELCOME, '+username.toUpperCase(),'success');
-  init();
+  if(!email||!email.includes('@')){errEl.textContent='Please enter a valid email address.';return;}
+  errEl.textContent='REGISTERING...';
+  try{
+    var res=await fetch(GUILD_API+'/users/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:username,email:email,password:password,hunter_rank:'E',hunter_class:'Fighter',level:1,total_xp:0})
+    });
+    var data=await res.json();
+    if(!res.ok){errEl.textContent=data.detail||'Registration failed.';return;}
+    setSession(data);
+    currentUser=data.username;
+    state=loadState();
+    if(state.name==='HUNTER')state.name=username.toUpperCase();
+    saveState();
+    hideAuthOverlay();
+    showToast('HUNTER REGISTERED — WELCOME, '+username.toUpperCase(),'success');
+    init();
+  }catch(e){errEl.textContent='Cannot reach server. Check your connection.';}
 }
 
 async function handleLogin(){
@@ -2582,22 +2564,28 @@ async function handleLogin(){
   var password=document.getElementById('loginPassword').value;
   var errEl=document.getElementById('loginError');
   errEl.textContent='';
-  var acc=findAccount(username);
-  if(!acc){errEl.textContent='No hunter record found with that name.';return;}
-  var hash=await hashPassword(password,acc.salt);
-  if(hash!==acc.hash){errEl.textContent='Incorrect password.';return;}
-  try{localStorage.setItem(SESSION_KEY,acc.username);}catch(e){}
-  currentUser=acc.username;
-  state=loadState();
-  hideAuthOverlay();
-  showToast('WELCOME BACK, '+acc.username.toUpperCase(),'success');
-  init();
+  errEl.textContent='AUTHENTICATING...';
+  try{
+    var res=await fetch(GUILD_API+'/users/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:username,password:password})
+    });
+    var data=await res.json();
+    if(!res.ok){errEl.textContent=data.detail||'Invalid username or password.';return;}
+    setSession(data);
+    currentUser=data.username;
+    state=loadState();
+    hideAuthOverlay();
+    showToast('WELCOME BACK, '+data.username.toUpperCase(),'success');
+    init();
+  }catch(e){errEl.textContent='Cannot reach server. Check your connection.';}
 }
 
 function logOut(){
   if(!confirm('Log out of the current hunter account?'))return;
   saveState();
-  try{localStorage.removeItem(SESSION_KEY);}catch(e){}
+  clearSession();
   currentUser=null;
   document.getElementById('loginUsername').value='';
   document.getElementById('loginPassword').value='';
@@ -2611,7 +2599,7 @@ document.getElementById('loginBtn').addEventListener('click',handleLogin);
 document.getElementById('signupBtn').addEventListener('click',handleSignup);
 document.getElementById('logoutBtn').addEventListener('click',logOut);
 ['loginUsername','loginPassword'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')handleLogin();});});
-['signupUsername','signupPassword','signupConfirm'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')handleSignup();});});
+['signupUsername','signupEmail','signupPassword','signupConfirm'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')handleSignup();});});
 
 // ═══════════════════════════════════════════════════════
 // QUEST CONTROLS
@@ -2701,7 +2689,7 @@ window.testGuildBackend = async function() {
     var name = 'TEST_HUNTER_' + Date.now().toString().slice(-5);
     var r2 = await fetch(GUILD_API + '/users/', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({username:name, email:name+'@test.local', hunter_rank:'S', hunter_class:'Fighter', level:99, total_xp:99999})
+      body: JSON.stringify({username:name, email:name+'@test.local', password:'testpass123', hunter_rank:'S', hunter_class:'Fighter', level:99, total_xp:99999})
     });
     var d2 = await r2.json();
     uid = d2.id;
