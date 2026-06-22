@@ -221,6 +221,7 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
 /* ── BUTTONS ─────────────────────────────────────────── */
 .gbtn{width:100%;padding:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em;margin-bottom:7px;transition:all .15s}
 .gbtn:hover,.gbtn:active{border-color:var(--accent);color:var(--accent)}
+.gbtn.capped,.abtn.capped{opacity:.38;cursor:not-allowed;border-color:var(--border);color:var(--muted);pointer-events:none}
 .abtn{width:100%;padding:9px;border:1px dashed var(--border);background:transparent;color:var(--muted);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em}
 .abtn:active{border-color:var(--accent);color:var(--accent)}
 
@@ -252,6 +253,8 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
 .hlog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
 .hlog-btn{padding:12px 8px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-size:9px;cursor:pointer;font-family:var(--mono);letter-spacing:.07em;text-align:center;transition:all .2s}
 .hlog-btn:hover,.hlog-btn:active{border-color:var(--accent);color:var(--accent)}
+.hlog-btn.capped{opacity:.38;cursor:not-allowed;border-color:var(--border);color:var(--muted);pointer-events:none}
+.hlog-btn.capped .hlog-stat{color:var(--muted)}
 .hlog-ico{font-size:18px;display:block;margin-bottom:4px}
 .hlog-stat{font-size:8px;color:var(--gold);margin-top:3px}
 
@@ -1613,7 +1616,7 @@ function generateDailyQuests(){
   var pool=QUEST_POOL.slice();
   for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
   state.quests=pool.slice(0,6).map(function(q,i){return{id:i+1,name:q.name,xp:q.xp,stat:q.stat,cat:q.cat,done:false};});
-  state.lastQuestDate=todayStr();saveState();spawnEmergencyQuest();detectDungeon();
+  state.lastQuestDate=todayStr();state.lastQuestRefreshDate=todayStr();saveState();spawnEmergencyQuest();detectDungeon();
 }
 
 function checkAndRefreshDailyQuests(){if(!state.quests.length||state.lastQuestDate!==todayStr())generateDailyQuests();detectDungeon();checkWeeklyBoss();}
@@ -2331,7 +2334,49 @@ function completeEmergencyQuest(){
 // LIFESTYLE LOGGING
 // ═══════════════════════════════════════════════════════
 var pendingLifestyle=null;
+
+function getDailyLifestyleLogs(){
+  state.dailyLifestyleLogs=state.dailyLifestyleLogs||{};
+  return state.dailyLifestyleLogs;
+}
+function isLifestyleLoggedToday(type){
+  var logs=getDailyLifestyleLogs();
+  return logs[type]===todayStr();
+}
+function markLifestyleLoggedToday(type){
+  state.dailyLifestyleLogs=state.dailyLifestyleLogs||{};
+  state.dailyLifestyleLogs[type]=todayStr();
+  saveState();
+}
+
+function refreshLifestyleButtons(){
+  var types=['study','hydration','sleep','meditation'];
+  var btns=document.querySelectorAll('.hlog-btn');
+  var icons=['📚','💧','🌙','🧘'];
+  var labels=['STUDY / READING','HYDRATION','SLEEP LOG','MEDITATION'];
+  var stats=['+INT','+VIT','+VIT','+SEN'];
+  btns.forEach(function(btn,i){
+    var type=types[i];
+    if(isLifestyleLoggedToday(type)){
+      btn.classList.add('capped');
+      btn.onclick=null;
+      btn.setAttribute('onclick','');
+      // Update label to show logged
+      btn.innerHTML='<span class="hlog-ico">'+icons[i]+'</span>'+labels[i]+'<div class="hlog-stat">✓ LOGGED TODAY</div>';
+    } else {
+      btn.classList.remove('capped');
+      btn.setAttribute('onclick','logLifestyle("'+type+'")');
+      btn.innerHTML='<span class="hlog-ico">'+icons[i]+'</span>'+labels[i]+'<div class="hlog-stat">'+stats[i]+'</div>';
+    }
+  });
+}
+
 function logLifestyle(type){
+  if(isLifestyleLoggedToday(type)){
+    var typeNames={study:'STUDY',hydration:'HYDRATION',sleep:'SLEEP',meditation:'MEDITATION'};
+    showToast(typeNames[type]+' ALREADY LOGGED TODAY — RESETS AT MIDNIGHT','danger');
+    return;
+  }
   pendingLifestyle=type;
   var titles={study:'LOG STUDY / READING',hydration:'LOG HYDRATION',sleep:'LOG SLEEP',meditation:'LOG MEDITATION'};
   var descs={study:'Minutes studying or reading. 30+ min = bonus INT.',hydration:'Glasses of water today. 8+ = bonus VIT.',sleep:'Hours slept. 7+ = bonus VIT.',meditation:'Minutes of practice. 15+ = bonus SEN.'};
@@ -2356,8 +2401,9 @@ document.getElementById('lifestyleConfirm').addEventListener('click',function(){
   state.stats[stat]=Math.min(999,state.stats[stat]+statGain);
   addXP(xp);state.lifestyleLogs=state.lifestyleLogs||[];
   state.lifestyleLogs.unshift({type:pendingLifestyle,amount:amount,stat:stat,date:new Date().toLocaleDateString()});
+  markLifestyleLoggedToday(pendingLifestyle);
   saveState();showToast(pendingLifestyle.toUpperCase()+' LOGGED — +'+statGain+' '+stat.toUpperCase(),'gold');
-  renderStats();updateMiniBar();document.getElementById('lifestyleModal').classList.remove('open');pendingLifestyle=null;
+  renderStats();updateMiniBar();refreshLifestyleButtons();document.getElementById('lifestyleModal').classList.remove('open');pendingLifestyle=null;
 });
 document.getElementById('lifestyleCancel').addEventListener('click',function(){document.getElementById('lifestyleModal').classList.remove('open');pendingLifestyle=null;});
 
@@ -2604,16 +2650,97 @@ document.getElementById('logoutBtn').addEventListener('click',logOut);
 // ═══════════════════════════════════════════════════════
 // QUEST CONTROLS
 // ═══════════════════════════════════════════════════════
-document.getElementById('refreshBtn').addEventListener('click',function(){if(!confirm('Generate new daily quests? Current progress resets.'))return;generateDailyQuests();renderQuests();checkWarning();showToast('NEW DAILY QUESTS GENERATED');});
-document.getElementById('addBtn').addEventListener('click',function(){document.getElementById('qModalName').value='';document.getElementById('qModalXP').value='25';document.getElementById('questModal').classList.add('open');setTimeout(function(){document.getElementById('qModalName').focus();},100);});
+
+// Daily quest refresh cap — once per day
+function canRefreshDailyQuests(){
+  return state.lastQuestRefreshDate !== todayStr();
+}
+
+// Custom quest daily cap — max 3 per day
+var DAILY_CUSTOM_QUEST_LIMIT = 3;
+function getDailyCustomQuestCount(){
+  if(state.dailyCustomQuestDate !== todayStr()){
+    state.dailyCustomQuestDate = todayStr();
+    state.dailyCustomQuestCount = 0;
+    saveState();
+  }
+  return state.dailyCustomQuestCount || 0;
+}
+function incrementDailyCustomQuestCount(){
+  if(state.dailyCustomQuestDate !== todayStr()){
+    state.dailyCustomQuestDate = todayStr();
+    state.dailyCustomQuestCount = 0;
+  }
+  state.dailyCustomQuestCount = (state.dailyCustomQuestCount || 0) + 1;
+  saveState();
+}
+
+function refreshDailyCapUI(){
+  var refreshBtn = document.getElementById('refreshBtn');
+  var addBtn = document.getElementById('addBtn');
+  if(refreshBtn){
+    var canRefresh = canRefreshDailyQuests();
+    refreshBtn.classList.toggle('capped', !canRefresh);
+    refreshBtn.textContent = canRefresh
+      ? '[ GENERATE NEW DAILY QUESTS ]'
+      : '[ DAILY QUESTS GENERATED — RESETS TOMORROW ]';
+  }
+  if(addBtn){
+    var customCount = getDailyCustomQuestCount();
+    var remaining = DAILY_CUSTOM_QUEST_LIMIT - customCount;
+    var isCapped = remaining <= 0;
+    addBtn.classList.toggle('capped', isCapped);
+    addBtn.textContent = isCapped
+      ? '[ CUSTOM QUEST LIMIT REACHED (3/3) ]'
+      : '[ + ADD CUSTOM QUEST ('+(remaining)+' REMAINING TODAY) ]';
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click',function(){
+  if(!canRefreshDailyQuests()){
+    showToast('DAILY QUESTS ALREADY GENERATED — RESETS AT MIDNIGHT','danger');
+    return;
+  }
+  if(!confirm('Generate new daily quests? Current progress resets.'))return;
+  generateDailyQuests();
+  state.lastQuestRefreshDate = todayStr();
+  saveState();
+  renderQuests();checkWarning();showToast('NEW DAILY QUESTS GENERATED');
+  refreshDailyCapUI();
+});
+
+document.getElementById('addBtn').addEventListener('click',function(){
+  var count = getDailyCustomQuestCount();
+  if(count >= DAILY_CUSTOM_QUEST_LIMIT){
+    showToast('DAILY CUSTOM QUEST LIMIT REACHED (3/3) — RESETS AT MIDNIGHT','danger');
+    return;
+  }
+  document.getElementById('qModalName').value='';document.getElementById('qModalXP').value='25';document.getElementById('questModal').classList.add('open');setTimeout(function(){document.getElementById('qModalName').focus();},100);
+});
+
 document.getElementById('qModalCancel').addEventListener('click',function(){document.getElementById('questModal').classList.remove('open');});
 document.getElementById('qModalConfirm').addEventListener('click',function(){
   var name=document.getElementById('qModalName').value.trim();if(!name){document.getElementById('qModalName').focus();return;}
+  var count = getDailyCustomQuestCount();
+  if(count >= DAILY_CUSTOM_QUEST_LIMIT){
+    showToast('DAILY CUSTOM QUEST LIMIT REACHED (3/3)','danger');
+    document.getElementById('questModal').classList.remove('open');
+    return;
+  }
   var xp=Math.min(100,Math.max(10,parseInt(document.getElementById('qModalXP').value)||25));
   var cats=[['STRENGTH','str'],['CARDIO','agi'],['ENDURANCE','vit'],['MOBILITY','int'],['FLEXIBILITY','sen'],['INTELLIGENCE','int'],['VITALITY','vit']];
   var idx=parseInt(document.getElementById('qModalCat').value)||0;
-  state.quests.push({id:Date.now(),name:name.toUpperCase(),xp:xp,stat:cats[idx][1],cat:cats[idx][0],done:false});
-  saveState();renderQuests();checkWarning();showToast('CUSTOM QUEST ADDED');
+  state.quests.push({id:Date.now(),name:name.toUpperCase(),xp:xp,stat:cats[idx][1],cat:cats[idx][0],done:false,custom:true});
+  incrementDailyCustomQuestCount();
+  var newCount = getDailyCustomQuestCount();
+  var remaining = DAILY_CUSTOM_QUEST_LIMIT - newCount;
+  saveState();renderQuests();checkWarning();
+  if(remaining > 0){
+    showToast('CUSTOM QUEST ADDED — '+remaining+' SLOT'+(remaining===1?'':'S')+' REMAINING TODAY');
+  } else {
+    showToast('CUSTOM QUEST ADDED — DAILY LIMIT REACHED','gold');
+  }
+  refreshDailyCapUI();
   document.getElementById('questModal').classList.remove('open');
 });
 
@@ -2637,6 +2764,8 @@ async function init(){
   renderQuests();
   renderLog();
   checkWarning();
+  refreshLifestyleButtons();
+  refreshDailyCapUI();
   await checkShadowExtractions();
   detectDungeon();
   checkWeeklyBoss();
