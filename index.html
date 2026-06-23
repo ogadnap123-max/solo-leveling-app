@@ -264,11 +264,6 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
 .lt{color:var(--muted)}
 .lx{color:var(--gold)}
 
-/* ── PY LOG ──────────────────────────────────────────── */
-.py-log{background:#080b18;border:1px solid var(--border);padding:9px 11px;font-size:9px;color:var(--success);letter-spacing:.04em;margin-bottom:10px;line-height:1.9;word-break:break-all}
-.py-log .pp{color:var(--muted)}
-.py-log .po{color:var(--gold)}
-
 /* ── OUTLIER LOG ─────────────────────────────────────── */
 .outlier-item{background:#150509;border:1px solid var(--danger);border-left:3px solid var(--danger);padding:8px 11px;margin-bottom:6px;font-size:9px}
 .oi-top{display:flex;justify-content:space-between;color:var(--danger);letter-spacing:.04em;margin-bottom:4px;font-family:var(--orb);font-size:9px}
@@ -594,8 +589,7 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
   <div id="pane-shadow" style="display:none;">
     <div class="sec accent">SHADOW ARMY — MONARCH'S FORCE</div>
     <div id="shadowArmyContent"></div>
-    <div class="sec" style="margin-top:8px;">EXTRACTION ENGINE</div>
-    <div class="py-log" id="extractionLog"><span class="pp">&gt;&gt;&gt; </span>shadow_system.init()<br><span class="po">"ARISE." — SHADOW MONARCH</span></div>
+
   </div>
 
   <!-- GACHA PANE -->
@@ -619,9 +613,7 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
       <div class="key-item"><strong>VIT — VITALITY</strong>Sleep, hydration, endurance.</div>
       <div class="key-item"><strong>SEN — SENSE</strong>Meditation, stretching, focus.</div>
     </div>
-    <div class="sec" style="margin-top:12px;">PYTHON ENGINE OUTPUT</div>
-    <div id="pyLogStreak" class="py-log"><span class="pp">&gt;&gt;&gt; </span>loading...</div>
-    <div class="sec">SYSTEM INTEGRITY LOG — OUTLIER DETECTION</div>
+    <div class="sec" style="margin-top:12px;">SYSTEM INTEGRITY LOG — OUTLIER DETECTION</div>
     <div id="outlierLog"></div>
     <div class="sec">28-DAY CALENDAR</div>
     <div class="streak-cal" id="streakCal"></div>
@@ -632,7 +624,6 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
   <!-- RANK PANE -->
   <div id="pane-rank" style="display:none;">
     <div class="sec">GLOBAL RANKINGS</div>
-    <div id="pyLogRank" class="py-log"></div>
     <table class="rank-table">
       <thead><tr><th>#</th><th>HUNTER</th><th>RNK</th><th>LVL</th><th>SCORE</th><th>STK</th></tr></thead>
       <tbody id="rankBody"></tbody>
@@ -656,7 +647,6 @@ body.penalty-mode::before{background:repeating-linear-gradient(0deg,transparent,
     </div>
     <div class="sec">ALL TITLES</div>
     <div class="title-grid" id="titlesGrid"></div>
-    <div class="py-log" id="pyLogTitles" style="margin-top:8px;"></div>
   </div>
 
   <!-- GUILD PANE -->
@@ -1572,14 +1562,6 @@ function renderTitlesPane(){
     html+='</div>';
   });
   grid.innerHTML=html;
-  // Python log
-  var pyLog=document.getElementById('pyLogTitles');
-  if(pyLog){
-    var unlocked=state.titles||[];
-    pyLog.innerHTML='<span class="pp">&gt;&gt;&gt; </span>title_engine.check_unlock(hunter_state)<br>'
-      +'<span class="po">'+unlocked.length+'/'+ALL_TITLES.length+' titles unlocked</span><br>'
-      +'<span class="pp">&gt;&gt;&gt; </span>equipped = "'+( state.equippedTitle||'None' )+'"</span>';
-  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1630,7 +1612,7 @@ async function checkShadowExtractions(){
   var newlyUnlocked=[];
   if(pyReady){try{var res=await pyodide.runPythonAsync('shadow_engine.check_extractions('+JSON.stringify(JSON.stringify(state.questCounts))+','+JSON.stringify(JSON.stringify(state.shadowArmy))+')');newlyUnlocked=JSON.parse(typeof res==='string'?res:res.toString());}catch(e){newlyUnlocked=checkShadowJS();}}
   else{newlyUnlocked=checkShadowJS();}
-  newlyUnlocked.forEach(function(sid){if(state.shadowArmy.indexOf(sid)===-1){state.shadowArmy.push(sid);var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(s){updateExtractionLog(s);setTimeout(function(){showToast('SHADOW EXTRACTED — '+s.name+' HAS ARISEN!','purple');playPing();},200);}}});
+  newlyUnlocked.forEach(function(sid){if(state.shadowArmy.indexOf(sid)===-1){state.shadowArmy.push(sid);var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(s){setTimeout(function(){showToast('SHADOW EXTRACTED — '+s.name+' HAS ARISEN!','purple');playPing();},200);}}});
   if(newlyUnlocked.length){saveState();updateMiniBar();}
   checkExtractionProximity();
 }
@@ -1638,8 +1620,6 @@ async function checkShadowExtractions(){
 function checkShadowJS(){var unlocked=[];SHADOW_SOLDIERS.forEach(function(s){if(state.shadowArmy.indexOf(s.id)===-1&&(state.questCounts[s.req]||0)>=s.reqCount)unlocked.push(s.id);});return unlocked;}
 function getShadowProgress(s){var count=state.questCounts[s.req]||0;return{count:count,needed:s.reqCount,pct:Math.min(100,Math.round(count/s.reqCount*100))};}
 function checkExtractionProximity(){var close=SHADOW_SOLDIERS.find(function(s){if(state.shadowArmy.indexOf(s.id)!==-1)return false;var p=getShadowProgress(s);return p.pct>=60&&p.pct<100;});var el=document.getElementById('extractionNotif');var desc=document.getElementById('extractionDesc');if(close){var p=getShadowProgress(close);el.style.display='block';desc.textContent=close.name+' is at '+p.pct+'% — '+(close.reqCount-p.count)+' more '+close.req.toUpperCase()+' quests needed.';}else{el.style.display='none';}}
-function updateExtractionLog(soldier){var el=document.getElementById('extractionLog');if(!el)return;var now=new Date();el.innerHTML+='<br><span class="pp">&gt;&gt;&gt; </span>shadow_engine.extract("'+soldier.id+'")<br><span style="color:var(--purple);">[ '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' ] "ARISE." — '+soldier.name+' joined.</span>';}
-
 function renderShadowArmy(){
   var el=document.getElementById('shadowArmyContent');var html='';
   if(state.shadowArmy.length){html+='<div class="sec accent">ACTIVE SOLDIERS ('+state.shadowArmy.length+')</div><div class="shadow-roster">';state.shadowArmy.forEach(function(sid){var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(!s)return;html+='<div class="shadow-card" style="border-color:'+s.color+';"><div class="sc-ico" style="border-color:'+s.color+';background:#06020f;">'+s.emoji+'</div><div style="flex:1;min-width:0;"><div class="sc-name">'+s.name+'</div><div class="sc-rank" style="color:'+s.color+';">'+s.grade+' GRADE</div><div class="sc-bonus">'+s.bonus+'</div><div class="sc-req" style="margin-top:4px;font-style:italic;">"'+s.story+'"</div></div><div class="sc-badge" style="background:'+s.color+';color:#000;">ACTIVE</div></div>';});html+='</div>';}
@@ -1937,7 +1917,7 @@ function applyGachaItem(item){
   if(b.indexOf('all stats')!==-1){var am=ex(/\+(\d+) to all/)||10;STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+am);});}
   if(b.indexOf('ALL STATS')!==-1&&b.indexOf('+30')!==-1){STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+30);});addXP(1000);}
   if(b.indexOf('full stat boost')!==-1){STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+20);});}
-  if(b.indexOf('SHADOW EXTRACTED')!==-1){var locked=SHADOW_SOLDIERS.filter(function(s){return state.shadowArmy.indexOf(s.id)===-1;});if(locked.length){var pick=locked[Math.floor(Math.random()*locked.length)];state.shadowArmy.push(pick.id);updateExtractionLog(pick);updateMiniBar();}}
+  if(b.indexOf('SHADOW EXTRACTED')!==-1){var locked=SHADOW_SOLDIERS.filter(function(s){return state.shadowArmy.indexOf(s.id)===-1;});if(locked.length){var pick=locked[Math.floor(Math.random()*locked.length)];state.shadowArmy.push(pick.id);updateMiniBar();}}
 }
 
 function showGachaReveal(item){
@@ -2105,14 +2085,6 @@ async function _renderMyGuild(el) {
 
   html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:8px;color:var(--muted);">Complete quests to contribute XP to your guild.</div>'
     + '<button class="guild-btn danger" onclick="leaveGuild()">[ LEAVE GUILD ]</button>'
-    + '</div>';
-
-  // Python-style readout
-  html += '<div class="py-log" style="margin-bottom:12px;">'
-    + '<span class="pp">&gt;&gt;&gt; </span>backend.get_guild_members(guild_id=' + (guild.backendId || '?') + ')<br>'
-    + '<span class="po">{ total_members: ' + memberCount + ', hunters: [' + members.slice(0,3).map(function(m){return '"'+m.username+'"';}).join(', ') + (members.length>3?', ...':'') + '] }</span><br>'
-    + '<span class="pp">&gt;&gt;&gt; </span>guild_engine.status()<br>'
-    + '<span class="po">guild="' + guild.name + '" role=' + (guild.role||'Member') + ' backendId=' + (guild.backendId||'none') + '</span>'
     + '</div>';
 
   el.innerHTML = html;
@@ -2444,9 +2416,6 @@ async function renderStats(){
   var sbars=document.getElementById('sbars');
   if(sbars){sbars.innerHTML=STAT_KEYS.map(function(k){var pct=Math.round(state.stats[k]/mx*100);return '<div class="sbr"><div class="sbl">'+STAT_LABELS[k]+'</div><div class="sbt"><div class="sbf" style="width:'+pct+'%;background:'+BAR_COLORS[k]+';"></div></div><div class="sbv">'+state.stats[k]+'</div></div>';}).join('');}
   var sd=await computeStreak();
-  var mult=sd.current>=14?'2.0x':sd.current>=7?'1.5x':sd.current>=3?'1.25x':'1.0x';
-  var pyLog=document.getElementById('pyLogStreak');
-  if(pyLog){var pySource=pyReady?'Pyodide Python 3.11':'JS Fallback';pyLog.innerHTML=['<span class="pp">&gt;&gt;&gt; </span># Engine: '+pySource,'<span class="pp">&gt;&gt;&gt; </span>streak_calc.compute(active_days='+sd.days.length+')','<span class="po">{ current: '+sd.current+', best: '+sd.best+', total: '+sd.days.length+' }</span>','<span class="pp">&gt;&gt;&gt; </span>streak_calc.xp_multiplier('+sd.current+')','<span class="po">'+mult+' — '+(sd.current>=3?mult+' STREAK BONUS':'NO BONUS YET')+'</span>','<span class="pp">&gt;&gt;&gt; </span>guild_engine.status()','<span class="po">guild='+(state.guild?'"'+state.guild.name+'" weeklyXP='+state.guild.weeklyXP:'"NONE"')+'</span>','<span class="pp">&gt;&gt;&gt; </span>title_engine.equipped()','<span class="po">'+(state.equippedTitle||'None')+'</span>'].join('<br>');}
   var calEl=document.getElementById('streakCal');
   if(calEl){var today=new Date();var calHtml='';for(var d=27;d>=0;d--){var dd=new Date(today);dd.setDate(today.getDate()-d);var ds=dd.toDateString();var on=sd.days.indexOf(ds)!==-1;calHtml+='<div class="dc'+(on?' on':'')+(d===0?' today':'')+'" title="'+ds+'">'+dd.getDate()+'</div>';}calEl.innerHTML=calHtml;}
   var msEl=document.getElementById('milestones');
@@ -2470,9 +2439,7 @@ async function renderRankPane(){
   var all=GLOBAL_HUNTERS.map(function(h){return{name:h.name,level:h.level,score:h.xp+h.streak*50,streak:h.streak,rank:h.rank,isMe:false};});
   all.push({name:state.name,level:state.level,score:myScore,streak:sd.current,rank:getRD(state.level).r,isMe:true,totalXP:state.totalXP});
   all.sort(function(a,b){return b.score-a.score;});
-  var myPos=all.findIndex(function(h){return h.isMe;})+1;
   var rankColors={S:'#b04af7',A:'#f74a6c',B:'#c9a84c',C:'#378ADD',D:'#2adb82',E:'#8888aa'};
-  document.getElementById('pyLogRank').innerHTML=['<span class="pp">&gt;&gt;&gt; </span>ranking_engine.score("'+state.name+'")','<span class="po">level('+state.level+')×500 + xp('+state.totalXP+') + streak('+sd.current+')×50 = '+myScore+'</span>','<span class="pp">&gt;&gt;&gt; </span>ranking_engine.position("'+state.name+'")','<span class="po">rank = #'+myPos+' of '+all.length+' hunters</span>','<span class="pp">&gt;&gt;&gt; </span>shadow_army.power_score()','<span class="po">army_size='+state.shadowArmy.length+' | titles=['+((state.titles||[]).join(', ')||'NONE')+']</span>'].join('<br>');
   var medals=['🥇','🥈','🥉'];
   document.getElementById('rankBody').innerHTML=all.map(function(h,i){var pos=i+1;return '<tr class="'+(h.isMe?'me':'')+'"><td>'+(pos<=3?medals[pos-1]:pos)+'</td><td style="color:'+(h.isMe?'var(--accent)':'var(--text)')+';">'+(h.isMe?'▶ ':'')+h.name+'</td><td style="color:'+rankColors[h.rank]+';">'+h.rank+'</td><td>'+h.level+'</td><td>'+h.score+'</td><td>'+h.streak+'d</td></tr>';}).join('');
 }
@@ -2898,6 +2865,478 @@ window.testGuildBackend = async function() {
     }
   });
 })();
+
+// ═══════════════════════════════════════════════════════
+// ██████╗ ADMIN CONTROL PANEL — LINA ONLY
+// Self-contained. Does NOT modify any existing functions.
+// Gated: only renders for accounts with is_admin=true.
+// Activate: tap the 👁 bubble on the right edge 3× fast.
+// ═══════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // ── Auth gate — silently abort for non-admin users ──
+  var _sess=(function(){try{return JSON.parse(localStorage.getItem('sl_shadow_session'));}catch(e){return null;}})();
+  if(!_sess||!_sess.is_admin){return;}
+
+  // ── Styles ──────────────────────────────────────────
+  var style=document.createElement('style');
+  style.textContent=`
+  #adminBubble{
+    position:fixed;right:0;top:50%;transform:translateY(-50%);
+    width:28px;height:56px;background:#0b0d17;
+    border:1px solid #1a2240;border-right:none;
+    border-radius:6px 0 0 6px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;z-index:8888;
+    font-size:14px;letter-spacing:0;
+    transition:background .2s,border-color .2s;
+    user-select:none;-webkit-user-select:none;
+  }
+  #adminBubble.armed{border-color:#c9a84c;background:#16120a;}
+  #adminBubble.open{border-color:#4a6cf7;background:#0d1028;}
+
+  #adminDrawer{
+    position:fixed;right:0;top:0;bottom:0;width:280px;
+    background:#08090f;border-left:1px solid #1a2240;
+    z-index:8887;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    transform:translateX(100%);transition:transform .28s cubic-bezier(.25,.8,.25,1);
+    font-family:'Share Tech Mono',monospace;
+    padding-bottom:20px;
+  }
+  #adminDrawer.open{transform:translateX(0);}
+
+  .adm-header{
+    background:linear-gradient(135deg,#0b0d17,#0d1028);
+    border-bottom:1px solid #1a2240;
+    padding:12px 14px 10px;
+    position:sticky;top:0;z-index:2;
+  }
+  .adm-logo{
+    font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;
+    color:#4a6cf7;letter-spacing:.14em;margin-bottom:2px;
+  }
+  .adm-sub{font-size:8px;color:#c9a84c;letter-spacing:.1em;}
+  .adm-close{
+    position:absolute;right:10px;top:10px;
+    background:transparent;border:1px solid #1a2240;
+    color:#4a5a7a;font-family:inherit;font-size:9px;
+    padding:3px 8px;cursor:pointer;letter-spacing:.08em;
+  }
+  .adm-close:active{color:#4a6cf7;border-color:#4a6cf7;}
+
+  .adm-section{padding:10px 12px 2px;}
+  .adm-sec-title{
+    font-size:7px;color:#4a5a7a;letter-spacing:.18em;
+    margin-bottom:8px;padding-bottom:4px;
+    border-bottom:1px solid #1a2240;
+  }
+
+  .adm-row{display:flex;gap:6px;margin-bottom:7px;align-items:center;}
+  .adm-label{font-size:8px;color:#c8d4f0;letter-spacing:.06em;flex:1;min-width:0;}
+  .adm-input{
+    background:#080c1a;border:1px solid #1a2240;
+    color:#c8d4f0;padding:5px 8px;
+    font-family:'Share Tech Mono',monospace;font-size:10px;
+    width:70px;flex-shrink:0;
+  }
+  .adm-input:focus{outline:none;border-color:#4a6cf7;}
+  .adm-select{
+    background:#080c1a;border:1px solid #1a2240;
+    color:#c8d4f0;padding:5px 6px;
+    font-family:'Share Tech Mono',monospace;font-size:9px;
+    flex:1;min-width:0;
+  }
+  .adm-select:focus{outline:none;border-color:#4a6cf7;}
+
+  .adm-btn{
+    padding:6px 10px;border:1px solid #1a2240;
+    background:transparent;color:#4a5a7a;
+    font-family:'Share Tech Mono',monospace;font-size:8px;
+    letter-spacing:.08em;cursor:pointer;flex-shrink:0;
+    transition:all .15s;white-space:nowrap;
+  }
+  .adm-btn:active{border-color:#4a6cf7;color:#4a6cf7;background:rgba(74,108,247,.08);}
+  .adm-btn.accent{border-color:#4a6cf7;color:#4a6cf7;}
+  .adm-btn.accent:active{background:rgba(74,108,247,.15);}
+  .adm-btn.gold{border-color:#c9a84c;color:#c9a84c;}
+  .adm-btn.gold:active{background:rgba(201,168,76,.12);}
+  .adm-btn.success{border-color:#2adb82;color:#2adb82;}
+  .adm-btn.success:active{background:rgba(42,219,130,.1);}
+  .adm-btn.danger{border-color:#f74a6c;color:#f74a6c;}
+  .adm-btn.danger:active{background:rgba(247,74,108,.1);}
+  .adm-btn.purple{border-color:#b04af7;color:#b04af7;}
+  .adm-btn.purple:active{background:rgba(176,74,247,.1);}
+  .adm-btn.full{width:100%;margin-bottom:5px;}
+
+  .adm-toggle{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 10px;border:1px solid #1a2240;
+    background:transparent;color:#4a5a7a;
+    font-family:'Share Tech Mono',monospace;font-size:8px;
+    letter-spacing:.08em;cursor:pointer;width:100%;margin-bottom:5px;
+    transition:all .15s;
+  }
+  .adm-toggle.on{border-color:#2adb82;color:#2adb82;background:rgba(42,219,130,.06);}
+  .adm-toggle-dot{
+    width:10px;height:10px;border-radius:50%;
+    background:#4a5a7a;flex-shrink:0;transition:background .2s;
+  }
+  .adm-toggle.on .adm-toggle-dot{background:#2adb82;}
+
+  .adm-feedback{
+    font-size:8px;color:#2adb82;letter-spacing:.08em;
+    min-height:12px;margin-top:2px;margin-bottom:4px;
+    transition:opacity .3s;
+  }
+  .adm-feedback.warn{color:#f7a84a;}
+  .adm-feedback.err{color:#f74a6c;}
+
+  .adm-divider{height:1px;background:#1a2240;margin:8px 12px;}
+  `;
+  document.head.appendChild(style);
+
+  // ── DOM ──────────────────────────────────────────────
+  var bubble=document.createElement('div');
+  bubble.id='adminBubble';
+  bubble.innerHTML='👁';
+  bubble.title='Admin Panel';
+  document.body.appendChild(bubble);
+
+  var drawer=document.createElement('div');
+  drawer.id='adminDrawer';
+  drawer.innerHTML=`
+  <div class="adm-header">
+    <div class="adm-logo">⚙ ADMIN PANEL</div>
+    <div class="adm-sub">SHADOW SYSTEM — LINA ONLY</div>
+    <button class="adm-close" id="admClose">[ CLOSE ]</button>
+  </div>
+
+  <!-- XP -->
+  <div class="adm-section">
+    <div class="adm-sec-title">◈ GRANT XP (bypasses outlier check)</div>
+    <div class="adm-row">
+      <input class="adm-input" id="admXpAmt" type="number" value="500" min="1" max="999999">
+      <button class="adm-btn accent" id="admXpBtn">[ GRANT ]</button>
+    </div>
+    <div class="adm-feedback" id="admXpFb"></div>
+  </div>
+
+  <!-- STREAK -->
+  <div class="adm-section">
+    <div class="adm-sec-title">◈ SET STREAK DAYS</div>
+    <div class="adm-row">
+      <input class="adm-input" id="admStreakAmt" type="number" value="7" min="0" max="999">
+      <button class="adm-btn gold" id="admStreakBtn">[ SET ]</button>
+    </div>
+    <div class="adm-feedback" id="admStreakFb"></div>
+  </div>
+
+  <div class="adm-divider"></div>
+
+  <!-- COOLDOWNS -->
+  <div class="adm-section">
+    <div class="adm-sec-title">◈ COOLDOWN CONTROLS</div>
+    <button class="adm-btn success full" id="admQuestReset">[ RESET DAILY QUEST COOLDOWN ]</button>
+    <button class="adm-toggle full" id="admGachaToggle"><span class="adm-toggle-dot"></span><span id="admGachaLabel">GACHA COOLDOWN: ON</span></button>
+    <button class="adm-toggle full" id="admTimerToggle"><span class="adm-toggle-dot"></span><span id="admTimerLabel">TIMERS: ON</span></button>
+    <div class="adm-feedback" id="admCdFb"></div>
+  </div>
+
+  <div class="adm-divider"></div>
+
+  <!-- DUNGEON -->
+  <div class="adm-section">
+    <div class="adm-sec-title">◈ FORCE DUNGEON TYPE</div>
+    <div class="adm-row">
+      <select class="adm-select" id="admDungeonSel">
+        <option value="fire">🌋 FIRE — 2.0× XP</option>
+        <option value="water">🌊 WATER — 1.5× XP</option>
+        <option value="shadow" selected>🌑 SHADOW — 1.75× XP</option>
+        <option value="ice">❄️ ICE — 1.5× XP</option>
+        <option value="lightning">⚡ LIGHTNING — 1.75× XP</option>
+      </select>
+      <button class="adm-btn accent" id="admDungeonBtn">[ SET ]</button>
+    </div>
+    <div class="adm-feedback" id="admDungeonFb"></div>
+  </div>
+
+  <div class="adm-divider"></div>
+
+  <!-- BOSS -->
+  <div class="adm-section">
+    <div class="adm-sec-title">◈ SUMMON WEEKLY BOSS</div>
+    <div class="adm-row">
+      <select class="adm-select" id="admBossSel">
+        <option value="cerberus">🐕 CERBERUS — A-RANK</option>
+        <option value="spider_queen">🕷️ SPIDER QUEEN — S-RANK</option>
+        <option value="ant_king">🐜 ANT KING BERU — S-RANK</option>
+      </select>
+      <button class="adm-btn danger" id="admBossBtn">[ SUMMON ]</button>
+    </div>
+    <div class="adm-feedback" id="admBossFb"></div>
+  </div>
+
+  <div class="adm-divider"></div>
+
+  <!-- UNLOCK ALL -->
+  <div class="adm-section">
+    <div class="adm-sec-title">◈ UNLOCK EVERYTHING</div>
+    <button class="adm-btn purple full" id="admArmyBtn">[ UNLOCK ALL SHADOW ARMY (7) ]</button>
+    <button class="adm-btn gold full" id="admTitlesBtn">[ UNLOCK ALL TITLES (12) ]</button>
+    <div class="adm-feedback" id="admUnlockFb"></div>
+  </div>
+
+  <div class="adm-divider"></div>
+
+  <!-- RESET -->
+  <div class="adm-section">
+    <div class="adm-sec-title">◈ DANGER ZONE</div>
+    <button class="adm-btn danger full" id="admResetBtn">[ ⚠ RESET TO DEFAULT STATE ]</button>
+    <div class="adm-feedback err" id="admResetFb"></div>
+  </div>
+  `;
+  document.body.appendChild(drawer);
+
+  // ── State ────────────────────────────────────────────
+  var bubbleTaps=0,bubbleTimer=null;
+  var drawerOpen=false;
+  var gachaCdDisabled=false;
+  var timerDisabled=false;
+
+  function feedback(elId,msg,type,dur){
+    var el=document.getElementById(elId);if(!el)return;
+    el.textContent=msg;el.className='adm-feedback'+(type?' '+type:'');
+    clearTimeout(el._t);
+    el._t=setTimeout(function(){el.textContent='';el.className='adm-feedback';},dur||2500);
+  }
+
+  // ── Bubble tap logic (3 taps to open) ───────────────
+  bubble.addEventListener('click',function(e){
+    e.stopPropagation();
+    bubbleTaps++;
+    bubble.classList.add('armed');
+    clearTimeout(bubbleTimer);
+    bubbleTimer=setTimeout(function(){
+      if(bubbleTaps>=3){openDrawer();}
+      bubbleTaps=0;
+      bubble.classList.remove('armed');
+    },600);
+  });
+
+  function openDrawer(){
+    drawerOpen=true;
+    drawer.classList.add('open');
+    bubble.classList.remove('armed');
+    bubble.classList.add('open');
+  }
+  function closeDrawer(){
+    drawerOpen=false;
+    drawer.classList.remove('open');
+    bubble.classList.remove('open');
+  }
+
+  document.getElementById('admClose').addEventListener('click',closeDrawer);
+  // Close when clicking outside
+  document.addEventListener('click',function(e){
+    if(drawerOpen&&!drawer.contains(e.target)&&e.target!==bubble){closeDrawer();}
+  });
+
+  // ── GRANT XP (bypasses outlier engine) ──────────────
+  document.getElementById('admXpBtn').addEventListener('click',function(){
+    var amt=parseInt(document.getElementById('admXpAmt').value)||0;
+    if(amt<=0){feedback('admXpFb','Enter a positive amount','err');return;}
+    // Direct state injection — bypasses outlier check
+    var mult=getDungeonMult()*getStreakMult();
+    var final=Math.round(amt*mult);
+    var oldLevel=state.level;
+    state.xp+=final;state.totalXP+=final;
+    var leveled=false;
+    while(state.xp>=state.xpNeeded){state.xp-=state.xpNeeded;state.level++;state.xpNeeded=xpFor(state.level);leveled=true;}
+    if(leveled)triggerLevelUp(oldLevel,state.level);
+    saveState();updateUI();
+    feedback('admXpFb','✓ +'+final+' XP granted'+(mult>1?' (×'+mult.toFixed(2)+' mult)':''),'');
+    checkTitleUnlocks();
+  });
+
+  // ── SET STREAK ───────────────────────────────────────
+  document.getElementById('admStreakBtn').addEventListener('click',function(){
+    var days=parseInt(document.getElementById('admStreakAmt').value);
+    if(isNaN(days)||days<0){feedback('admStreakFb','Enter 0 or more','err');return;}
+    // Build a backdated activeDays array of the given length
+    var arr=[];
+    var today=new Date();today.setHours(0,0,0,0);
+    for(var i=days-1;i>=0;i--){
+      var d=new Date(today);d.setDate(today.getDate()-i);
+      arr.push(d.toDateString());
+    }
+    state.streak.activeDays=arr;
+    state.streak.current=days;
+    state.streak.best=Math.max(state.streak.best,days);
+    saveState();updateUI();
+    feedback('admStreakFb','✓ Streak set to '+days+' day'+(days!==1?'s':''),'');
+    checkTitleUnlocks();
+  });
+
+  // ── RESET DAILY QUEST COOLDOWN ───────────────────────
+  document.getElementById('admQuestReset').addEventListener('click',function(){
+    state.lastQuestDate='';
+    state.quests=[];
+    saveState();
+    if(typeof generateDailyQuests==='function')generateDailyQuests();
+    if(typeof renderQuests==='function')renderQuests();
+    feedback('admCdFb','✓ Quest cooldown reset — new quests generated','');
+  });
+
+  // ── GACHA COOLDOWN TOGGLE ────────────────────────────
+  document.getElementById('admGachaToggle').addEventListener('click',function(){
+    gachaCdDisabled=!gachaCdDisabled;
+    var btn=document.getElementById('admGachaToggle');
+    var lbl=document.getElementById('admGachaLabel');
+    if(gachaCdDisabled){
+      state.gachaLastOpen=0; // set to epoch so canOpenGacha() returns true
+      saveState();
+      btn.classList.add('on');
+      lbl.textContent='GACHA COOLDOWN: OFF ✓';
+      feedback('admCdFb','✓ Gacha is now free to pull anytime','');
+    } else {
+      btn.classList.remove('on');
+      lbl.textContent='GACHA COOLDOWN: ON';
+      feedback('admCdFb','Gacha cooldown restored','warn');
+    }
+  });
+
+  // ── TIMER TOGGLE (skip dungeon / story timers) ───────
+  document.getElementById('admTimerToggle').addEventListener('click',function(){
+    timerDisabled=!timerDisabled;
+    var btn=document.getElementById('admTimerToggle');
+    var lbl=document.getElementById('admTimerLabel');
+    if(timerDisabled){
+      // Monkey-patch openTimerModal to instantly fire the callback
+      window._origOpenTimerModal=window._origOpenTimerModal||openTimerModal;
+      window.openTimerModal=function(label,seconds,onComplete){
+        // Close any open modal and immediately complete
+        document.getElementById('timerModal').classList.remove('open');
+        clearInterval(activeTimer.interval);
+        if(onComplete)setTimeout(onComplete,50);
+      };
+      // Also mark dungeon as entered
+      window.dungeonEntered=true;
+      btn.classList.add('on');
+      lbl.textContent='TIMERS: OFF (instant) ✓';
+      feedback('admCdFb','✓ Timers skipped — objectives complete instantly','');
+    } else {
+      // Restore original
+      if(window._origOpenTimerModal)window.openTimerModal=window._origOpenTimerModal;
+      window.dungeonEntered=false;
+      btn.classList.remove('on');
+      lbl.textContent='TIMERS: ON';
+      feedback('admCdFb','Timers restored','warn');
+    }
+  });
+
+  // ── FORCE DUNGEON TYPE ───────────────────────────────
+  document.getElementById('admDungeonBtn').addEventListener('click',function(){
+    var type=document.getElementById('admDungeonSel').value;
+    state.dungeon={type:type,date:todayStr()};
+    window.dungeonEntered=false; // allow re-entering
+    saveState();
+    if(typeof detectDungeon==='function')detectDungeon();
+    if(typeof renderDungeonPane==='function')renderDungeonPane();
+    var d=DUNGEONS[type];
+    feedback('admDungeonFb','✓ '+d.icon+' '+d.name+' active ('+d.xpMult+'× XP)','');
+  });
+
+  // ── SUMMON BOSS ──────────────────────────────────────
+  document.getElementById('admBossBtn').addEventListener('click',function(){
+    var id=document.getElementById('admBossSel').value;
+    var bt=WEEKLY_BOSSES.find(function(b){return b.id===id;});
+    if(!bt){feedback('admBossFb','Boss not found','err');return;}
+    // Set deadline to 24h from now so there's plenty of time
+    var deadline=Date.now()+24*60*60*1000;
+    state.boss={id:bt.id,currentHp:bt.maxHp,maxHp:bt.maxHp,deadline:deadline};
+    saveState();
+    if(typeof renderDungeonPane==='function')renderDungeonPane();
+    feedback('admBossFb','✓ '+bt.icon+' '+bt.name+' summoned — '+bt.hp+' HP!','');
+  });
+
+  // ── UNLOCK ALL SHADOW ARMY ───────────────────────────
+  document.getElementById('admArmyBtn').addEventListener('click',function(){
+    var added=0;
+    // Also max out questCounts to satisfy extraction requirements
+    state.questCounts=state.questCounts||{};
+    SHADOW_SOLDIERS.forEach(function(s){
+      state.questCounts[s.req]=Math.max(state.questCounts[s.req]||0,s.reqCount);
+      if(state.shadowArmy.indexOf(s.id)===-1){state.shadowArmy.push(s.id);added++;}
+    });
+    saveState();updateUI();
+    if(typeof renderShadowArmy==='function')renderShadowArmy();
+    checkTitleUnlocks();
+    feedback('admUnlockFb','✓ All '+SHADOW_SOLDIERS.length+' soldiers active'+( added?' ('+added+' new)':''),'');
+  });
+
+  // ── UNLOCK ALL TITLES ────────────────────────────────
+  document.getElementById('admTitlesBtn').addEventListener('click',function(){
+    var added=0;
+    ALL_TITLES.forEach(function(t){
+      if(!state.titles)state.titles=[];
+      if(state.titles.indexOf(t.id)===-1){state.titles.push(t.id);added++;}
+    });
+    // Auto-equip the most prestigious title if nothing equipped
+    if(!state.equippedTitle)state.equippedTitle='monarch_arise';
+    saveState();
+    if(typeof renderTitlesPane==='function')renderTitlesPane();
+    if(typeof updateEquippedTitle==='function')updateEquippedTitle();
+    feedback('admUnlockFb','✓ All '+ALL_TITLES.length+' titles unlocked'+( added?' ('+added+' new)':''),'');
+  });
+
+  // ── RESET TO DEFAULT STATE ───────────────────────────
+  var resetPending=false;
+  document.getElementById('admResetBtn').addEventListener('click',function(){
+    if(!resetPending){
+      resetPending=true;
+      feedback('admResetFb','⚠ Tap again to confirm FULL RESET','warn',4000);
+      document.getElementById('admResetBtn').textContent='[ ⚠ CONFIRM RESET — TAP AGAIN ]';
+      setTimeout(function(){
+        resetPending=false;
+        document.getElementById('admResetBtn').textContent='[ ⚠ RESET TO DEFAULT STATE ]';
+      },4000);
+      return;
+    }
+    resetPending=false;
+    // Wipe to default
+    state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+    // Reset admin-side toggles too
+    gachaCdDisabled=false;
+    timerDisabled=false;
+    window.dungeonEntered=false;
+    if(window._origOpenTimerModal)window.openTimerModal=window._origOpenTimerModal;
+    var gachaBtn=document.getElementById('admGachaToggle');
+    if(gachaBtn)gachaBtn.classList.remove('on');
+    document.getElementById('admGachaLabel').textContent='GACHA COOLDOWN: ON';
+    var timerBtn=document.getElementById('admTimerToggle');
+    if(timerBtn)timerBtn.classList.remove('on');
+    document.getElementById('admTimerLabel').textContent='TIMERS: ON';
+    saveState();
+    if(typeof generateDailyQuests==='function')generateDailyQuests();
+    updateUI();
+    document.getElementById('admResetBtn').textContent='[ ⚠ RESET TO DEFAULT STATE ]';
+    feedback('admResetFb','✓ State reset to default','warn');
+  });
+
+  // ── Keep gacha permanently free if toggle is on ─────
+  // Override canOpenGacha to respect admin flag
+  var _origCanOpenGacha=window.canOpenGacha;
+  window.canOpenGacha=function(){
+    if(gachaCdDisabled)return true;
+    return _origCanOpenGacha?_origCanOpenGacha():((Date.now()-(state.gachaLastOpen||0))>=3600000);
+  };
+
+  console.log('%c⚙ ADMIN PANEL LOADED — tap 👁 × 3 to open','color:#4a6cf7;font-size:11px;font-weight:bold;');
+})();
+// ══════════════════════════════════════════════════════════
+// END ADMIN PANEL
+// ══════════════════════════════════════════════════════════
 </script>
 </body>
 </html>
