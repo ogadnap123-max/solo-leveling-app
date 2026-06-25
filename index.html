@@ -1847,7 +1847,111 @@ function stateKey(){return 'sl_shadow_v6_'+(currentUser||'guest');}
 
 var state=loadState();
 
-function saveState(){try{localStorage.setItem(stateKey(),JSON.stringify(state));}catch(e){}}
+// ═══════════════════════════════════════════════════════
+// CLOUD SYNC MODULE
+// Write-through: localStorage for instant reads, FastAPI
+// for cross-device persistence. Debounced 2 s to batch
+// rapid state mutations into a single network write.
+// Conflict rule: newest _savedAt timestamp wins.
+// ═══════════════════════════════════════════════════════
+var CloudSync = (function(){
+  var _debounceTimer = null;
+  var _pendingFlush  = false;   // true when a flush is awaited on unload
+  var DEBOUNCE_MS    = 2000;
+
+  // Build the profile endpoint URL for the current session user.
+  // Returns null when no user is logged in (guest mode).
+  function _profileUrl(){
+    var sess = getSession();
+    if(!sess || !sess.id) return null;
+    return GUILD_API + '/users/' + sess.id + '/profile';
+  }
+
+  // Push current state to the cloud.
+  // Stamps _savedAt so the receiving device can compare freshness.
+  async function push(){
+    var url = _profileUrl();
+    if(!url) return;                      // guest — skip
+    var payload = JSON.parse(JSON.stringify(state));
+    payload._savedAt = Date.now();        // conflict-resolution timestamp
+    try{
+      await fetch(url, {
+        method:  'PUT',
+        headers: {'Content-Type':'application/json'},
+        body:    JSON.stringify({profile: payload})
+      });
+    }catch(e){
+      // Network failure — localStorage already has the data; retry on next save.
+      console.warn('[CloudSync] push failed (offline?):', e.message);
+    }
+  }
+
+  // Fetch cloud profile and merge into local state.
+  // Newest _savedAt wins; ties go to cloud (server is authoritative).
+  async function pull(){
+    var url = _profileUrl();
+    if(!url) return null;
+    try{
+      var res  = await fetch(url);
+      if(!res.ok) return null;
+      var data = await res.json();
+      if(!data || !data.profile) return null;
+      return data.profile;               // raw profile object
+    }catch(e){
+      console.warn('[CloudSync] pull failed (offline?):', e.message);
+      return null;
+    }
+  }
+
+  // Merge cloud profile into `state`, respecting the timestamp.
+  // Called after login/signup. Returns true if cloud data was applied.
+  function mergeCloud(cloudProfile){
+    if(!cloudProfile) return false;
+    var localTs = state._savedAt || 0;
+    var cloudTs = cloudProfile._savedAt || 0;
+    if(cloudTs >= localTs){
+      // Cloud is newer (or same) — apply it in full, deep-merging defaults
+      var merged = Object.assign({}, DEFAULT_STATE, cloudProfile, {
+        stats:       Object.assign({}, DEFAULT_STATE.stats,       cloudProfile.stats       || {}),
+        streak:      Object.assign({}, DEFAULT_STATE.streak,      cloudProfile.streak      || {}),
+        questCounts: Object.assign({}, DEFAULT_STATE.questCounts, cloudProfile.questCounts || {}),
+        gachaPity:   Object.assign({}, DEFAULT_STATE.gachaPity,   cloudProfile.gachaPity   || {}),
+        ownedItems:  cloudProfile.ownedItems  || [],
+        bossCount:   cloudProfile.bossCount   || 0,
+        equippedTitle: cloudProfile.equippedTitle || null,
+        guild:       cloudProfile.guild  || null,
+        prevRank:    cloudProfile.prevRank || null,
+        xpHistory:   cloudProfile.xpHistory   || [],
+        outlierFlags:cloudProfile.outlierFlags || []
+      });
+      // Assign directly into the existing `state` reference so all game
+      // code that captured `state` stays in sync.
+      Object.keys(merged).forEach(function(k){ state[k] = merged[k]; });
+      return true;
+    }
+    return false;  // local is newer — keep it, push will overwrite cloud
+  }
+
+  // Public: immediate localStorage write + debounced cloud push.
+  // This is the drop-in replacement for the old saveState().
+  function save(){
+    try{ localStorage.setItem(stateKey(), JSON.stringify(state)); }catch(e){}
+    clearTimeout(_debounceTimer);
+    _debounceTimer = setTimeout(push, DEBOUNCE_MS);
+  }
+
+  // Public: force an immediate cloud flush (used on logout / pagehide).
+  async function flushNow(){
+    clearTimeout(_debounceTimer);
+    await push();
+  }
+
+  return { save:save, push:push, pull:pull, mergeCloud:mergeCloud, flushNow:flushNow };
+})();
+
+// saveState is the existing call-site used everywhere in game logic.
+// Redirecting it here means zero other code needs to change.
+function saveState(){ CloudSync.save(); }
 
 function loadState(){
   try{
@@ -1873,9 +1977,13 @@ function loadState(){
   return JSON.parse(JSON.stringify(DEFAULT_STATE));
 }
 
-window.addEventListener('pagehide',saveState);
-window.addEventListener('beforeunload',saveState);
-window.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState();});
+// On pagehide / beforeunload: flush pending cloud write immediately
+// (debounce is bypassed — we don't have 2 s to wait).
+window.addEventListener('pagehide',   function(){ CloudSync.flushNow(); });
+window.addEventListener('beforeunload',function(){ CloudSync.flushNow(); });
+window.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden') CloudSync.flushNow();
+});
 
 
 // ═══════════════════════════════════════════════════════
@@ -3252,7 +3360,9 @@ async function handleSignup(){
     currentUser=data.username;
     state=loadState();
     if(state.name==='HUNTER')state.name=username.toUpperCase();
+    // Push brand-new profile to cloud so device 2 can pull it on first login.
     saveState();
+    await CloudSync.flushNow();
     hideAuthOverlay();
     showToast('HUNTER REGISTERED — WELCOME, '+username.toUpperCase(),'success');
     init();
@@ -3275,17 +3385,34 @@ async function handleLogin(){
     if(!res.ok){errEl.textContent=data.detail||'Invalid username or password.';return;}
     setSession(data);
     currentUser=data.username;
+
+    // ── CLOUD SAVE RESTORE ───────────────────────────────
+    // 1. Load local state (fast, no network — gives instant first paint)
     state=loadState();
+    // 2. Pull cloud profile and merge (newest _savedAt timestamp wins)
+    errEl.textContent='SYNCING CLOUD DATA...';
+    var cloudProfile = await CloudSync.pull();
+    var applied = CloudSync.mergeCloud(cloudProfile);
+    // 3. Write merged state back to localStorage so it's coherent locally
+    try{ localStorage.setItem(stateKey(), JSON.stringify(state)); }catch(e){}
+    // 4. If local was newer, push it up to sync the cloud as well
+    if(!applied && cloudProfile !== null){ await CloudSync.flushNow(); }
+    // ────────────────────────────────────────────────────
+
     hideAuthOverlay();
-    showToast('WELCOME BACK, '+data.username.toUpperCase(),'success');
+    var syncMsg = cloudProfile ? ' — CLOUD DATA RESTORED' : '';
+    showToast('WELCOME BACK, '+data.username.toUpperCase()+syncMsg,'success');
     init();
     if(data.is_admin) initAdminPanel();
   }catch(e){errEl.textContent='Cannot reach server. Check your connection.';}
 }
 
-function logOut(){
+async function logOut(){
   if(!confirm('Log out of the current hunter account?'))return;
+  // Flush any pending debounced writes to cloud before ending the session.
+  // This prevents data loss if the user logged progress in the last 2 s.
   saveState();
+  await CloudSync.flushNow();
   clearSession();
   currentUser=null;
   document.getElementById('loginUsername').value='';
