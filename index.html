@@ -212,6 +212,31 @@ body::before{
   box-shadow:0 0 24px rgba(139,92,246,0.25), inset 0 0 24px rgba(139,92,246,0.1);
 }
 .av i{font-size:30px;color:var(--accent2)}
+
+/* ── PROFILE PICTURE CUSTOMIZATION ──────────────── */
+.av{cursor:pointer}
+.av img.av-photo{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  border-radius:50%;position:absolute;inset:0;
+  display:block;
+}
+.av-overlay{
+  position:absolute;inset:0;border-radius:50%;
+  background:rgba(8,6,15,0.62);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .25s ease;
+  pointer-events:none;z-index:5;
+}
+.av-wrap:hover .av-overlay,
+.av-wrap.touch-hover .av-overlay{opacity:1}
+.av-overlay-txt{
+  font-size:9px;font-weight:700;font-family:var(--orb);
+  color:#fff;letter-spacing:.07em;text-align:center;
+  line-height:1.35;text-shadow:0 1px 4px rgba(0,0,0,0.8);
+  padding:0 4px;
+}
+#profileFileInput{display:none}
 .rpip{
   position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);
   font-size:10px;font-weight:900;
@@ -933,15 +958,65 @@ body::before{
 }
 
 /* ── INVENTORY ───────────────────────────────────── */
-.inv-grid{display:flex;flex-direction:column;gap:8px}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .inv-item{
   background:rgba(18,14,30,0.6);
   border:1px solid var(--glass-border);
   border-radius:var(--r-sm);
-  padding:12px 14px;display:flex;justify-content:space-between;align-items:center;
+  padding:12px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+  position:relative;
 }
 .ii-name{font-size:13px;color:var(--text);font-weight:600}
 .ii-desc{font-size:11px;color:var(--muted);margin-top:3px}
+.ii-qty{position:absolute;top:10px;right:12px;font-size:10px;color:var(--gold);font-weight:700}
+.inv-btn{
+  margin-top:6px;width:100%;padding:7px 0;
+  border:1px solid var(--glass-border);border-radius:var(--r-sm);
+  background:rgba(255,255,255,0.05);color:var(--text2);
+  font-size:11px;font-weight:700;letter-spacing:.05em;cursor:pointer;
+  font-family:var(--sans);transition:all .18s;
+}
+.inv-btn.equip{border-color:rgba(74,108,247,.5);color:#7d96ff;background:rgba(74,108,247,.08)}
+.inv-btn.unequip{border-color:rgba(247,74,108,.4);color:#ff8fa3;background:rgba(247,74,108,.08)}
+.inv-btn.use{border-color:rgba(245,158,11,.5);color:var(--gold);background:rgba(245,158,11,.08)}
+.equip-slots{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.equip-slot{
+  background:rgba(18,14,30,0.6);border:1px solid var(--glass-border);border-radius:var(--r-sm);
+  padding:14px;text-align:center;min-height:96px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+}
+.equip-slot.filled{border-color:rgba(245,158,11,.4)}
+.es-label{font-size:9px;color:var(--muted);letter-spacing:.12em}
+.es-icon{font-size:26px}
+.es-name{font-size:11px;color:var(--text);font-weight:700}
+.es-mod{font-size:10px;color:var(--success)}
+
+/* ── ACTIVE BUFFS PANEL ──────────────────────────── */
+.buff-cat{background:rgba(18,14,30,0.6);border:1px solid var(--glass-border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px}
+.buff-cat-title{font-size:11px;color:var(--text);font-weight:700;letter-spacing:.05em;margin-bottom:8px}
+.buff-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2);padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.buff-row:last-child{border-bottom:none}
+.buff-row.off{color:var(--muted)}
+.buff-row.off span:last-child{color:var(--muted)}
+.buff-row.total{margin-top:4px;padding-top:8px;border-top:1px solid var(--glass-border);font-weight:700;color:var(--text)}
+.buff-val{color:var(--success);font-weight:700}
+.buff-row.total .buff-val{color:var(--gold)}
+.buff-empty{font-size:11px;color:var(--muted);font-style:italic;padding:4px 0}
+
+/* ── FLOATING FX (essence stone breakdown, etc.) ──── */
+.floating-fx{
+  position:fixed;left:50%;top:42%;transform:translate(-50%,0);
+  z-index:9999;pointer-events:none;
+  font-family:var(--sans);font-weight:800;font-size:15px;letter-spacing:.03em;
+  color:var(--gold);text-shadow:0 0 8px var(--purple),0 0 16px var(--gold),0 0 2px #fff;
+  animation:floatFx 1.5s ease-out forwards;
+  white-space:nowrap;
+}
+@keyframes floatFx{
+  0%{opacity:0;transform:translate(-50%,10px) scale(0.9);}
+  15%{opacity:1;transform:translate(-50%,0) scale(1.05);}
+  100%{opacity:0;transform:translate(-50%,-70px) scale(1);}
+}
 
 /* ── TITLES ──────────────────────────────────────── */
 .title-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
@@ -1151,8 +1226,16 @@ body::before{
 
 <!-- HERO PROFILE CARD -->
 <div class="hero">
-  <div class="av-wrap">
-    <div class="av" id="avBox"><i class="ti ti-shield"></i><span class="rpip" id="rankPip">E</span></div>
+  <div class="av-wrap" id="avWrap">
+    <div class="av" id="avBox">
+      <i class="ti ti-shield" id="avIcon"></i>
+      <img class="av-photo" id="avPhoto" alt="Profile" style="display:none;">
+      <div class="av-overlay" id="avOverlay">
+        <span class="av-overlay-txt">Change<br>Profile</span>
+      </div>
+      <span class="rpip" id="rankPip">E</span>
+    </div>
+    <input type="file" id="profileFileInput" accept="image/jpeg,image/jpg,image/png,image/webp">
   </div>
   <div class="hero-info">
     <div class="hname" id="heroName" title="Tap to rename">HUNTER</div>
@@ -1202,6 +1285,7 @@ body::before{
   <button class="nb" id="nb-story">Story</button>
   <button class="nb" id="nb-shadow">Army</button>
   <button class="nb" id="nb-gacha">Gacha</button>
+  <button class="nb" id="nb-inventory">Inventory</button>
   <button class="nb" id="nb-stats">Stats</button>
   <button class="nb" id="nb-rank">Rank</button>
   <button class="nb" id="nb-titles">Titles</button>
@@ -1260,8 +1344,14 @@ body::before{
   <div id="pane-gacha" style="display:none;">
     <div class="sec">DAILY CHEST SYSTEM</div>
     <div id="gachaContent"></div>
-    <div class="sec">INVENTORY</div>
-    <div class="inv-grid" id="inventoryContent"></div>
+  </div>
+
+  <!-- INVENTORY PANE -->
+  <div id="pane-inventory" style="display:none;">
+    <div class="sec">EQUIPPED GEAR</div>
+    <div class="equip-slots" id="equippedContent"></div>
+    <div class="sec">ITEM INVENTORY</div>
+    <div class="inv-grid" id="invGridContent"></div>
   </div>
 
   <!-- STATS PANE -->
@@ -1283,6 +1373,8 @@ body::before{
     <div class="streak-cal" id="streakCal"></div>
     <div class="sec">MILESTONES</div>
     <div class="milestones" id="milestones"></div>
+    <div class="sec">✨ ACTIVE MULTIPLIERS & EFFECTS</div>
+    <div id="activeBuffsContent"></div>
   </div>
 
   <!-- RANK PANE -->
@@ -1750,23 +1842,31 @@ var STORY_CHAPTERS=[
   {id:5,title:'JEJU ISLAND RAID',story:'"The Ant King. They say it cannot be beaten."',tasks:[{t:'500 PUSHUPS TOTAL',key:'t1'},{t:'500 SQUATS TOTAL',key:'t2'},{t:'25 KM RUN TOTAL',key:'t3'},{t:'UNLOCK BERU',key:'t4'}],xpReward:15000,itemReward:"🐜 Beru's Fang",statReq:{str:150,agi:120,vit:100}}
 ];
 
+// type:'use' -> consumable, sits in inventory until "Use" is clicked (applies bonus text, then removed/qty--)
+// type:'equip' -> gear, sits in inventory until "Equip" is clicked (slot: weapon|armor|accessory). Grants passive % modifiers (array, supports multi-stat gear) while equipped, no instant stats.
 var GACHA_POOL=[
-  {id:'hp_potion',stars:1,icon:'🧪',name:'HP POTION',bonus:'+10 XP',rarity:'COMMON'},
-  {id:'stamina_pill',stars:1,icon:'💊',name:'STAMINA PILL',bonus:'+10 XP',rarity:'COMMON'},
-  {id:'ration',stars:1,icon:'🍖',name:'RATION',bonus:'+3 VIT',rarity:'COMMON'},
-  {id:'gold_coin',stars:2,icon:'💰',name:'GOLD COIN',bonus:'+50 XP',rarity:'UNCOMMON'},
-  {id:'skill_scroll',stars:2,icon:'📜',name:'SKILL SCROLL',bonus:'+8 INT',rarity:'UNCOMMON'},
-  {id:'bandage',stars:2,icon:'🩹',name:'BANDAGE',bonus:'+8 VIT',rarity:'UNCOMMON'},
-  {id:'iron_sword',stars:3,icon:'⚔️',name:'IRON SWORD',bonus:'+100 XP, +12 STR',rarity:'RARE'},
-  {id:'guardian_shield',stars:3,icon:'🛡️',name:'GUARDIAN SHIELD',bonus:'+12 VIT, +12 STR',rarity:'RARE'},
-  {id:'speed_boots',stars:3,icon:'👟',name:'SPEED BOOTS',bonus:'+15 AGI',rarity:'RARE'},
-  {id:'shadow_dagger',stars:4,icon:'🗡️',name:'SHADOW DAGGER',bonus:'+200 XP, +20 STR, +20 AGI',rarity:'EPIC'},
-  {id:'magic_crystal',stars:4,icon:'🔮',name:'MAGIC CRYSTAL',bonus:'+20 INT, +20 SEN',rarity:'EPIC'},
-  {id:'hunters_crown',stars:4,icon:'👑',name:"HUNTER'S CROWN",bonus:'+250 XP, +15 to all stats',rarity:'EPIC'},
-  {id:'shadow_soldier',stars:5,icon:'🌑',name:'SHADOW SOLDIER',bonus:'SHADOW EXTRACTED',rarity:'LEGENDARY'},
-  {id:'system_access',stars:5,icon:'⚡',name:'SYSTEM ACCESS',bonus:'+500 XP + full stat boost',rarity:'LEGENDARY'},
-  {id:'monarchs_ring',stars:5,icon:'🏆',name:"MONARCH'S RING",bonus:'+30 ALL STATS, +1000 XP',rarity:'LEGENDARY'}
+  {id:'hp_potion',stars:1,icon:'🧪',name:'HP POTION',bonus:'+10 XP',rarity:'COMMON',type:'use'},
+  {id:'stamina_pill',stars:1,icon:'💊',name:'STAMINA PILL',bonus:'+10 XP',rarity:'COMMON',type:'use'},
+  {id:'ration',stars:1,icon:'🍖',name:'RATION',bonus:'+3 VIT',rarity:'COMMON',type:'use'},
+  {id:'gold_coin',stars:2,icon:'💰',name:'GOLD COIN',bonus:'+50 XP',rarity:'UNCOMMON',type:'use'},
+  {id:'skill_scroll',stars:2,icon:'📜',name:'SKILL SCROLL',bonus:'+8 INT',rarity:'UNCOMMON',type:'use'},
+  {id:'bandage',stars:2,icon:'🩹',name:'BANDAGE',bonus:'+8 VIT',rarity:'UNCOMMON',type:'use'},
+  {id:'system_access',stars:5,icon:'⚡',name:'SYSTEM ACCESS',bonus:'+500 XP + full stat boost',rarity:'LEGENDARY',type:'use'},
+  {id:'rusty_dagger',stars:1,icon:'⚔️',name:'RUSTY DAGGER',bonus:'+5% Boss Damage (equip)',rarity:'COMMON',type:'equip',slot:'weapon',modifiers:[{stat:'boss',pct:0.05}]},
+  {id:'iron_sword',stars:2,icon:'⚔️',name:'IRON SWORD',bonus:'+10% Boss Damage (equip)',rarity:'UNCOMMON',type:'equip',slot:'weapon',modifiers:[{stat:'boss',pct:0.10}]},
+  {id:'knight_sword',stars:3,icon:'⚔️',name:'KNIGHT SWORD',bonus:'+15% Boss Damage (equip)',rarity:'RARE',type:'equip',slot:'weapon',modifiers:[{stat:'boss',pct:0.15}]},
+  {id:'demon_kings_blade',stars:4,icon:'⚔️',name:"DEMON KING'S BLADE",bonus:'+20% Boss Damage (equip)',rarity:'EPIC',type:'equip',slot:'weapon',modifiers:[{stat:'boss',pct:0.20}]},
+  {id:'shadow_dagger',stars:5,icon:'🗡️',name:'SHADOW DAGGER',bonus:'+25% Boss Damage (equip)',rarity:'LEGENDARY',type:'equip',slot:'weapon',modifiers:[{stat:'boss',pct:0.25}]},
+  {id:'leather_armor',stars:3,icon:'🛡️',name:'LEATHER ARMOR',bonus:'+5% XP Boost (equip)',rarity:'RARE',type:'equip',slot:'armor',modifiers:[{stat:'xp',pct:0.05}]},
+  {id:'knight_armor',stars:4,icon:'🛡️',name:'KNIGHT ARMOR',bonus:'+7.5% XP Boost (equip)',rarity:'EPIC',type:'equip',slot:'armor',modifiers:[{stat:'xp',pct:0.075}]},
+  {id:'shadow_armor',stars:5,icon:'🛡️',name:'SHADOW ARMOR',bonus:'+10% XP, +5% Streak, +5% Boss Dmg (equip)',rarity:'LEGENDARY',type:'equip',slot:'armor',modifiers:[{stat:'xp',pct:0.10},{stat:'streak',pct:0.05},{stat:'boss',pct:0.05}]},
+  {id:'stealth_ring',stars:2,icon:'💍',name:'STEALTH RING',bonus:'+5% Streak Bonus (equip)',rarity:'UNCOMMON',type:'equip',slot:'accessory',modifiers:[{stat:'streak',pct:0.05}]},
+  {id:'high_orc_mana_stone',stars:3,icon:'💎',name:'HIGH ORC MANA STONE',bonus:'+10% XP Boost (equip)',rarity:'RARE',type:'equip',slot:'accessory',modifiers:[{stat:'xp',pct:0.10}]},
+  {id:'kamish_amulet',stars:4,icon:'📿',name:"KAMISH'S AMULET",bonus:'+10% Boss Damage (equip)',rarity:'EPIC',type:'equip',slot:'accessory',modifiers:[{stat:'boss',pct:0.10}]},
+  {id:'hunters_crown',stars:4,icon:'👑',name:"HUNTER'S CROWN",bonus:'+10% Streak Bonus (equip)',rarity:'EPIC',type:'equip',slot:'accessory',modifiers:[{stat:'streak',pct:0.10}]},
+  {id:'monarchs_ring',stars:5,icon:'💍',name:"MONARCH'S RING",bonus:'+20% XP Boost (equip)',rarity:'LEGENDARY',type:'equip',slot:'accessory',modifiers:[{stat:'xp',pct:0.20}]}
 ];
+var RARITY_ESSENCE={COMMON:10,UNCOMMON:25,RARE:50,EPIC:100,LEGENDARY:250};
 
 var DUNGEONS={
   fire:{name:'VOLCANIC DUNGEON',type:'FIRE TYPE',color:'#f74a6c',icon:'🌋',desc:'Scorching dungeon — molten walls, extreme heat.',xpMult:2.0,condition:'Noon hours (11am–2pm)',quests:['100 SQUATS','50 BURPEES','20 MIN HIIT']},
@@ -1809,6 +1909,9 @@ var ALL_TITLES=[
   {id:'grand_marshal',name:'Grand Marshal',icon:'🛡️',req:'army_7',desc:'Command the full Shadow Army.',effect:'+30% army bonuses',reqDesc:'Extract all 7 shadow soldiers'},
   {id:'monarch_arise',name:'ARISE — SHADOW ARISE',icon:'⚡',req:'level_70',desc:'S-Rank achieved. You stand at the apex.',effect:'+50% all XP gains',reqDesc:'Reach Level 70'}
 ];
+// Functional %-modifiers for titles whose `effect` text is XP/Boss-damage based (drives both the real XP/damage formulas and the Active Buffs panel)
+var TITLE_BONUSES={goblin_slayer:{xp:0.05},dungeon_conqueror:{xp:0.10},king_of_hunters:{xp:0.20},boss_slayer:{boss:0.15},ant_king:{boss:0.30},monarch_arise:{xp:0.50}};
+function getEquippedTitleBonus(kind){var t=state.equippedTitle&&TITLE_BONUSES[state.equippedTitle];return (t&&t[kind])||0;}
 
 // ═══════════════════════════════════════════════════════
 // ACCOUNTS — server-side auth (FastAPI backend)
@@ -1833,7 +1936,8 @@ var DEFAULT_STATE={
   stats:{str:10,agi:10,vit:10,int:10,sen:10},quests:[],log:[],
   streak:{current:0,best:0,totalQuests:0,activeDays:[]},lastQuestDate:'',
   shadowArmy:[],questCounts:{str:0,agi:0,vit:0,int:0,sen:0},
-  chapterProgress:{},inventory:[],ownedItems:[],
+  chapterProgress:{},inventory:[],ownedItems:[],equipped:{weapon:null,armor:null,accessory1:null,accessory2:null},
+  essenceStones:0,shadowLevels:{},
   gachaLastOpen:0,gachaPity:{sinceEpic:0,sinceLegendary:0},
   boss:null,bossDefeated:[],bossCount:0,
   titles:[],equippedTitle:null,
@@ -1847,111 +1951,7 @@ function stateKey(){return 'sl_shadow_v6_'+(currentUser||'guest');}
 
 var state=loadState();
 
-// ═══════════════════════════════════════════════════════
-// CLOUD SYNC MODULE
-// Write-through: localStorage for instant reads, FastAPI
-// for cross-device persistence. Debounced 2 s to batch
-// rapid state mutations into a single network write.
-// Conflict rule: newest _savedAt timestamp wins.
-// ═══════════════════════════════════════════════════════
-var CloudSync = (function(){
-  var _debounceTimer = null;
-  var _pendingFlush  = false;   // true when a flush is awaited on unload
-  var DEBOUNCE_MS    = 2000;
-
-  // Build the profile endpoint URL for the current session user.
-  // Returns null when no user is logged in (guest mode).
-  function _profileUrl(){
-    var sess = getSession();
-    if(!sess || !sess.id) return null;
-    return GUILD_API + '/users/' + sess.id + '/profile';
-  }
-
-  // Push current state to the cloud.
-  // Stamps _savedAt so the receiving device can compare freshness.
-  async function push(){
-    var url = _profileUrl();
-    if(!url) return;                      // guest — skip
-    var payload = JSON.parse(JSON.stringify(state));
-    payload._savedAt = Date.now();        // conflict-resolution timestamp
-    try{
-      await fetch(url, {
-        method:  'PUT',
-        headers: {'Content-Type':'application/json'},
-        body:    JSON.stringify({profile: payload})
-      });
-    }catch(e){
-      // Network failure — localStorage already has the data; retry on next save.
-      console.warn('[CloudSync] push failed (offline?):', e.message);
-    }
-  }
-
-  // Fetch cloud profile and merge into local state.
-  // Newest _savedAt wins; ties go to cloud (server is authoritative).
-  async function pull(){
-    var url = _profileUrl();
-    if(!url) return null;
-    try{
-      var res  = await fetch(url);
-      if(!res.ok) return null;
-      var data = await res.json();
-      if(!data || !data.profile) return null;
-      return data.profile;               // raw profile object
-    }catch(e){
-      console.warn('[CloudSync] pull failed (offline?):', e.message);
-      return null;
-    }
-  }
-
-  // Merge cloud profile into `state`, respecting the timestamp.
-  // Called after login/signup. Returns true if cloud data was applied.
-  function mergeCloud(cloudProfile){
-    if(!cloudProfile) return false;
-    var localTs = state._savedAt || 0;
-    var cloudTs = cloudProfile._savedAt || 0;
-    if(cloudTs >= localTs){
-      // Cloud is newer (or same) — apply it in full, deep-merging defaults
-      var merged = Object.assign({}, DEFAULT_STATE, cloudProfile, {
-        stats:       Object.assign({}, DEFAULT_STATE.stats,       cloudProfile.stats       || {}),
-        streak:      Object.assign({}, DEFAULT_STATE.streak,      cloudProfile.streak      || {}),
-        questCounts: Object.assign({}, DEFAULT_STATE.questCounts, cloudProfile.questCounts || {}),
-        gachaPity:   Object.assign({}, DEFAULT_STATE.gachaPity,   cloudProfile.gachaPity   || {}),
-        ownedItems:  cloudProfile.ownedItems  || [],
-        bossCount:   cloudProfile.bossCount   || 0,
-        equippedTitle: cloudProfile.equippedTitle || null,
-        guild:       cloudProfile.guild  || null,
-        prevRank:    cloudProfile.prevRank || null,
-        xpHistory:   cloudProfile.xpHistory   || [],
-        outlierFlags:cloudProfile.outlierFlags || []
-      });
-      // Assign directly into the existing `state` reference so all game
-      // code that captured `state` stays in sync.
-      Object.keys(merged).forEach(function(k){ state[k] = merged[k]; });
-      return true;
-    }
-    return false;  // local is newer — keep it, push will overwrite cloud
-  }
-
-  // Public: immediate localStorage write + debounced cloud push.
-  // This is the drop-in replacement for the old saveState().
-  function save(){
-    try{ localStorage.setItem(stateKey(), JSON.stringify(state)); }catch(e){}
-    clearTimeout(_debounceTimer);
-    _debounceTimer = setTimeout(push, DEBOUNCE_MS);
-  }
-
-  // Public: force an immediate cloud flush (used on logout / pagehide).
-  async function flushNow(){
-    clearTimeout(_debounceTimer);
-    await push();
-  }
-
-  return { save:save, push:push, pull:pull, mergeCloud:mergeCloud, flushNow:flushNow };
-})();
-
-// saveState is the existing call-site used everywhere in game logic.
-// Redirecting it here means zero other code needs to change.
-function saveState(){ CloudSync.save(); }
+function saveState(){try{localStorage.setItem(stateKey(),JSON.stringify(state));}catch(e){}}
 
 function loadState(){
   try{
@@ -1964,6 +1964,9 @@ function loadState(){
         streak:Object.assign({},DEFAULT_STATE.streak,s.streak||{}),
         questCounts:Object.assign({},DEFAULT_STATE.questCounts,s.questCounts||{}),
         gachaPity:Object.assign({},DEFAULT_STATE.gachaPity,s.gachaPity||{}),
+        equipped:Object.assign({weapon:null,armor:null,accessory1:null,accessory2:null},s.equipped||{}),
+        essenceStones:s.essenceStones||0,
+        shadowLevels:Object.assign({},s.shadowLevels||{}),
         ownedItems:s.ownedItems||[],
         bossCount:s.bossCount||0,
         equippedTitle:s.equippedTitle||null,
@@ -1977,13 +1980,9 @@ function loadState(){
   return JSON.parse(JSON.stringify(DEFAULT_STATE));
 }
 
-// On pagehide / beforeunload: flush pending cloud write immediately
-// (debounce is bypassed — we don't have 2 s to wait).
-window.addEventListener('pagehide',   function(){ CloudSync.flushNow(); });
-window.addEventListener('beforeunload',function(){ CloudSync.flushNow(); });
-window.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='hidden') CloudSync.flushNow();
-});
+window.addEventListener('pagehide',saveState);
+window.addEventListener('beforeunload',saveState);
+window.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState();});
 
 
 // ═══════════════════════════════════════════════════════
@@ -1994,6 +1993,23 @@ function xpFor(lvl){return Math.round(100*Math.pow(1.15,lvl-1));}
 function todayStr(){return new Date().toDateString();}
 function pad2(n){return String(n).padStart(2,'0');}
 function getDungeonMult(){if(!state.dungeon)return 1.0;var d=DUNGEONS[state.dungeon.type];return d?d.xpMult:1.0;}
+function getPoolItem(id){return GACHA_POOL.find(function(p){return p.id===id;});}
+function getEquippedModifierTotal(kind){
+  var total=0,eq=state.equipped||{};
+  ['weapon','armor','accessory1','accessory2'].forEach(function(slot){
+    var p=eq[slot]&&getPoolItem(eq[slot]);
+    if(p&&p.modifiers)p.modifiers.forEach(function(m){if(m.stat===kind)total+=m.pct;});
+  });
+  return total;
+}
+function getShadowLevel(sid){return (state.shadowLevels&&state.shadowLevels[sid])||{level:1};}
+function getShadowRankInfo(level){
+  if(level>=10)return{rank:'General',pct:0.40};
+  if(level>=7)return{rank:'Elite',pct:0.25};
+  if(level>=4)return{rank:'Rare',pct:0.15};
+  return{rank:'Common',pct:0.05};
+}
+function getShadowXPBoost(){var total=0;state.shadowArmy.forEach(function(sid){total+=getShadowRankInfo(getShadowLevel(sid).level).pct;});return total;}
 function getStreakMult(cur){var s=cur!==undefined?cur:state.streak.current;return s>=14?2.0:s>=7?1.5:s>=3?1.25:1.0;}
 
 function showToast(msg,type){
@@ -2143,7 +2159,7 @@ async function addXP(amt){
   state.xpHistory.push({amt:grantAmt,ts:now});
   if(state.xpHistory.length>60)state.xpHistory=state.xpHistory.slice(-60);
 
-  var mult=getDungeonMult()*getStreakMult();
+  var mult=getDungeonMult()*getStreakMult()*(1+getEquippedModifierTotal('xp'))*(1+(state.streak.current>0?getEquippedModifierTotal('streak'):0))*(1+getShadowXPBoost())*(1+getEquippedTitleBonus('xp'));
   var final=Math.round(grantAmt*mult);
   var oldLevel=state.level;
   if(pyReady){
@@ -2370,14 +2386,14 @@ async function completeQuest(id){
   var earned=await addXP(q.xp);
   state.stats[q.stat]=Math.min(999,state.stats[q.stat]+Math.ceil(q.xp/8));
   state.shadowArmy.forEach(function(sid){var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(s&&s.bonusStat===q.stat)state.stats[q.stat]=Math.min(999,state.stats[q.stat]+2);});
-  if(state.boss){var dmg=q.cat==='STRENGTH'?20:q.cat==='CARDIO'?15:10;state.boss.currentHp=Math.max(0,state.boss.currentHp-dmg);if(state.boss.currentHp===0)triggerBossDefeat();}
+  if(state.boss){var dmg=(q.cat==='STRENGTH'?20:q.cat==='CARDIO'?15:10)*(1+getEquippedModifierTotal('boss'))*(1+getEquippedTitleBonus('boss'));state.boss.currentHp=Math.max(0,state.boss.currentHp-dmg);if(state.boss.currentHp===0)triggerBossDefeat();}
   // Guild contribution
   if(state.guild){state.guild.stats=state.guild.stats||{steps:0,pushups:0,km:0};if(q.cat==='STRENGTH'){state.guild.stats.pushups+=5;}if(q.cat==='CARDIO'){state.guild.stats.km+=0.5;state.guild.stats.steps+=500;}state.guild.weeklyXP=(state.guild.weeklyXP||0)+earned;}
   var now=new Date();
   state.log.unshift({text:q.name,xp:earned,base:q.xp,stat:q.stat,time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),date:now.toLocaleDateString()});
   if(state.log.length>100)state.log=state.log.slice(0,100);
   var sd=await computeStreak();updateStreakBar(sd);
-  var mult=getDungeonMult()*getStreakMult();var multStr=mult>1?' (×'+mult.toFixed(2)+'!)':'';
+  var mult=getDungeonMult()*getStreakMult()*(1+getEquippedModifierTotal('xp'))*(1+(state.streak.current>0?getEquippedModifierTotal('streak'):0))*(1+getShadowXPBoost())*(1+getEquippedTitleBonus('xp'));var multStr=mult>1?' (×'+mult.toFixed(2)+'!)':'';
   showToast('QUEST COMPLETE — +'+earned+' XP'+multStr,mult>1?'gold':'success');
   playPing();saveState();
   renderQuests();renderLog();renderStats();checkWarning();
@@ -2415,9 +2431,24 @@ async function checkShadowExtractions(){
 function checkShadowJS(){var unlocked=[];SHADOW_SOLDIERS.forEach(function(s){if(state.shadowArmy.indexOf(s.id)===-1&&(state.questCounts[s.req]||0)>=s.reqCount)unlocked.push(s.id);});return unlocked;}
 function getShadowProgress(s){var count=state.questCounts[s.req]||0;return{count:count,needed:s.reqCount,pct:Math.min(100,Math.round(count/s.reqCount*100))};}
 function checkExtractionProximity(){var close=SHADOW_SOLDIERS.find(function(s){if(state.shadowArmy.indexOf(s.id)!==-1)return false;var p=getShadowProgress(s);return p.pct>=60&&p.pct<100;});var el=document.getElementById('extractionNotif');var desc=document.getElementById('extractionDesc');if(close){var p=getShadowProgress(close);el.style.display='block';desc.textContent=close.name+' is at '+p.pct+'% — '+(close.reqCount-p.count)+' more '+close.req.toUpperCase()+' quests needed.';}else{el.style.display='none';}}
+function evolveShadow(sid){
+  if(!state.shadowLevels)state.shadowLevels={};
+  var cur=state.shadowLevels[sid]||{level:1};
+  if(cur.level>=10){showToast('MAX LEVEL REACHED');return;}
+  var cost=cur.level*50;
+  if((state.essenceStones||0)<cost){showToast('NOT ENOUGH ESSENCE STONES — NEED '+cost+' 💎');return;}
+  state.essenceStones-=cost;
+  cur.level+=1;
+  var info=getShadowRankInfo(cur.level);cur.rank=info.rank;
+  state.shadowLevels[sid]=cur;
+  var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});
+  saveState();showToast('⬆️ '+(s?s.name:'SHADOW')+' EVOLVED — LV.'+cur.level+' ('+info.rank.toUpperCase()+')','purple');
+  renderShadowArmy();updateMiniBar();
+}
 function renderShadowArmy(){
   var el=document.getElementById('shadowArmyContent');var html='';
-  if(state.shadowArmy.length){html+='<div class="sec accent">ACTIVE SOLDIERS ('+state.shadowArmy.length+')</div><div class="shadow-roster">';state.shadowArmy.forEach(function(sid){var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(!s)return;html+='<div class="shadow-card" style="border-color:'+s.color+';"><div class="sc-ico" style="border-color:'+s.color+';background:#06020f;">'+s.emoji+'</div><div style="flex:1;min-width:0;"><div class="sc-name">'+s.name+'</div><div class="sc-rank" style="color:'+s.color+';">'+s.grade+' GRADE</div><div class="sc-bonus">'+s.bonus+'</div><div class="sc-req" style="margin-top:4px;font-style:italic;">"'+s.story+'"</div></div><div class="sc-badge" style="background:'+s.color+';color:#000;">ACTIVE</div></div>';});html+='</div>';}
+  html+='<div class="sec accent">💎 ESSENCE STONES: '+(state.essenceStones||0)+'</div>';
+  if(state.shadowArmy.length){html+='<div class="sec accent">ACTIVE SOLDIERS ('+state.shadowArmy.length+')</div><div class="shadow-roster">';state.shadowArmy.forEach(function(sid){var s=SHADOW_SOLDIERS.find(function(x){return x.id===sid;});if(!s)return;var lv=getShadowLevel(sid);var info=getShadowRankInfo(lv.level);var cost=lv.level*50;var maxed=lv.level>=10;html+='<div class="shadow-card" style="border-color:'+s.color+';"><div class="sc-ico" style="border-color:'+s.color+';background:#06020f;">'+s.emoji+'</div><div style="flex:1;min-width:0;"><div class="sc-name">'+s.name+' <span style="font-size:8px;color:var(--gold);">LV.'+lv.level+'</span></div><div class="sc-rank" style="color:'+s.color+';">'+s.grade+' GRADE · '+info.rank.toUpperCase()+' RANK (+'+Math.round(info.pct*100)+'% XP)</div><div class="sc-bonus">'+s.bonus+'</div><div class="sc-req" style="margin-top:4px;font-style:italic;">"'+s.story+'"</div>'+(maxed?'<div style="font-size:8px;color:var(--gold);margin-top:4px;">MAX LEVEL REACHED</div>':'<button class="inv-btn equip" style="margin-top:6px;" onclick="evolveShadow(\''+sid+'\')">⬆ Evolve (Cost: '+cost+' 💎)</button>')+'</div><div class="sc-badge" style="background:'+s.color+';color:#000;">ACTIVE</div></div>';});html+='</div>';}
   html+='<div class="sec">EXTRACTION TARGETS</div><div class="shadow-roster">';
   SHADOW_SOLDIERS.forEach(function(s){if(state.shadowArmy.indexOf(s.id)!==-1)return;var p=getShadowProgress(s);html+='<div class="shadow-card shadow-locked" style="border-color:var(--border);"><div class="sc-ico" style="border-color:var(--border);background:var(--panel2);">'+s.emoji+'</div><div style="flex:1;min-width:0;"><div class="sc-name">'+s.name+'</div><div class="sc-rank" style="color:var(--muted);">'+s.grade+' GRADE</div><div class="sc-req">Complete '+s.reqCount+' '+s.req.toUpperCase()+' quests total.</div><div class="prog-bar"><div class="prog-fill" style="width:'+p.pct+'%;background:'+s.color+';"></div></div><div style="font-size:8px;color:var(--muted);margin-top:3px;">'+p.count+' / '+p.reqCount+' ('+p.pct+'%)</div></div><div class="sc-badge" style="border:1px solid var(--border);color:var(--muted);">LOCKED</div></div>';});
   html+='</div>';el.innerHTML=html;
@@ -2595,7 +2626,7 @@ document.getElementById('bossConfirm').addEventListener('click',function(){
   var pushups=parseInt(document.getElementById('bossPushups').value)||0;
   var squats=parseInt(document.getElementById('bossSquats').value)||0;
   var km=parseFloat(document.getElementById('bossKm').value)||0;
-  var dmg=pushups*2+squats*1+km*100;
+  var dmg=(pushups*2+squats*1+km*100)*(1+getEquippedModifierTotal('boss'))*(1+getEquippedTitleBonus('boss'));
   if(!dmg){showToast('ENTER DAMAGE VALUES');return;}
   state.boss.currentHp=Math.max(0,state.boss.currentHp-dmg);
   addXP(Math.round(dmg/2));
@@ -2679,23 +2710,15 @@ async function openGacha(){
   state.gachaPity.sinceLegendary=stars===5?0:(state.gachaPity.sinceLegendary||0)+1;
   state.gachaPity.sinceEpic=stars>=4?0:(state.gachaPity.sinceEpic||0)+1;
   state.gachaLastOpen=Date.now();
-  // Filter out already owned unique items (stars >= 3 are equipment)
-  var owned=state.ownedItems||[];
-  var pool=GACHA_POOL.filter(function(i){
-    if(i.stars<3)return i.stars===stars; // consumables ok for duplicates
-    return i.stars===stars&&owned.indexOf(i.id)===-1; // equipment no dupes
-  });
+  // Duplicates are allowed — addItemToInventory() converts owned-equipment dupes into Essence Stones
+  var pool=GACHA_POOL.filter(function(i){return i.stars===stars;});
   if(!pool.length){
     // Fallback: give a consumable instead
     pool=GACHA_POOL.filter(function(i){return i.stars<=2&&i.stars===Math.min(stars,2);});
     if(!pool.length)pool=GACHA_POOL.filter(function(i){return i.stars===1;});
   }
   var item=pool[Math.floor(Math.random()*pool.length)];
-  // Mark as owned if equipment
-  if(item.stars>=3){if(!state.ownedItems)state.ownedItems=[];if(owned.indexOf(item.id)===-1)state.ownedItems.push(item.id);}
-  applyGachaItem(item);
-  state.inventory.unshift({id:Date.now(),icon:item.icon,name:item.name,desc:item.rarity,stars:item.stars,acquired:new Date().toLocaleDateString(),bonus:item.bonus});
-  if(state.inventory.length>50)state.inventory=state.inventory.slice(0,50);
+  addItemToInventory(item);
   saveState();showGachaReveal(item);
 }
 
@@ -2712,7 +2735,6 @@ function applyGachaItem(item){
   if(b.indexOf('all stats')!==-1){var am=ex(/\+(\d+) to all/)||10;STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+am);});}
   if(b.indexOf('ALL STATS')!==-1&&b.indexOf('+30')!==-1){STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+30);});addXP(1000);}
   if(b.indexOf('full stat boost')!==-1){STAT_KEYS.forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+20);});}
-  if(b.indexOf('SHADOW EXTRACTED')!==-1){var locked=SHADOW_SOLDIERS.filter(function(s){return state.shadowArmy.indexOf(s.id)===-1;});if(locked.length){var pick=locked[Math.floor(Math.random()*locked.length)];state.shadowArmy.push(pick.id);updateMiniBar();}}
 }
 
 function showGachaReveal(item){
@@ -2732,13 +2754,90 @@ function renderGachaPane(){
   var el=document.getElementById('gachaContent');
   var canOpen=canOpenGacha();
   el.innerHTML='<div class="gacha-chest"><div class="gc-label">DAILY CHEST SYSTEM — TAP TO OPEN</div><div class="gc-chest" onclick="openGacha()">🎁</div>'+(canOpen?'<button class="gc-btn" onclick="openGacha()">[ OPEN CHEST ]</button>':'<div class="gc-cd">NEXT CHEST IN: <span style="color:var(--accent);">'+gacdRemaining()+'</span></div>')+'<div style="font-size:8px;color:var(--muted);margin-top:8px;">★ 45% &nbsp;★★ 30% &nbsp;★★★ 17% &nbsp;★★★★ 7% &nbsp;★★★★★ 1%</div><div style="font-size:8px;color:var(--muted);margin-top:4px;">PITY: '+((state.gachaPity||{}).sinceLegendary||0)+'/90 since last Legendary</div><div style="font-size:8px;color:var(--accent);margin-top:3px;">Equipment (★★★+): no duplicates</div></div>'
-    +'<div style="background:var(--panel);border:1px solid var(--border);padding:9px 11px;margin-bottom:10px;font-size:9px;line-height:2;"><div class="r1">★ COMMON — 45%</div><div class="r2">★★ UNCOMMON — 30%</div><div class="r3">★★★ RARE — 17%</div><div class="r4">★★★★ EPIC — 7%</div><div class="r5">★★★★★ LEGENDARY — 1%</div></div>';
-  var inv=document.getElementById('inventoryContent');
-  if(!state.inventory.length){inv.innerHTML='<div class="empty">NO ITEMS YET. OPEN A CHEST.</div>';return;}
-  var starsStr={1:'★',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
+    +'<div style="background:var(--panel);border:1px solid var(--border);padding:9px 11px;margin-bottom:10px;font-size:9px;line-height:2;"><div class="r1">★ COMMON — 45%</div><div class="r2">★★ UNCOMMON — 30%</div><div class="r3">★★★ RARE — 17%</div><div class="r4">★★★★ EPIC — 7%</div><div class="r5">★★★★★ LEGENDARY — 1%</div></div>'
+    +'<button class="gbtn" onclick="switchTab(\'inventory\')">📦 VIEW INVENTORY ('+state.inventory.length+')</button>';
+}
+
+// ═══════════════════════════════════════════════════════
+// INVENTORY (equip gear / use consumables)
+// ═══════════════════════════════════════════════════════
+function isEquipItemOwned(itemId){
+  if(state.inventory.some(function(e){return e.itemId===itemId;}))return true;
+  var eq=state.equipped||{};
+  return ['weapon','armor','accessory1','accessory2'].some(function(s){return eq[s]===itemId;});
+}
+
+function showFloatingFx(text){
+  var fx=document.createElement('div');
+  fx.className='floating-fx';
+  fx.textContent=text;
+  fx.style.left=(50+(Math.random()*10-5))+'%';
+  document.body.appendChild(fx);
+  setTimeout(function(){fx.remove();},1500);
+}
+
+function addItemToInventory(item){
+  if(item.type==='equip'&&isEquipItemOwned(item.id)){
+    var ess=RARITY_ESSENCE[item.rarity]||10;
+    state.essenceStones=(state.essenceStones||0)+ess;
+    showToast('♻️ DUPLICATE '+item.icon+' '+item.name+' BROKEN DOWN — +'+ess+' 💎 ESSENCE','purple');
+    showFloatingFx('+'+ess+' Essence Stones 💎');
+    return;
+  }
+  var existing=item.type==='use'&&state.inventory.find(function(e){return e.itemId===item.id;});
+  if(existing){existing.qty=(existing.qty||1)+1;existing.acquired=new Date().toLocaleDateString();}
+  else{state.inventory.unshift({itemId:item.id,qty:1,acquired:new Date().toLocaleDateString()});}
+  if(state.inventory.length>200)state.inventory=state.inventory.slice(0,200);
+  showToast('📦 '+item.icon+' '+item.name+' SENT TO INVENTORY','gold');
+}
+
+function equipItem(itemId){
+  var p=getPoolItem(itemId);if(!p||p.type!=='equip')return;
+  if(!state.equipped)state.equipped={weapon:null,armor:null,accessory1:null,accessory2:null};
+  var slot=p.slot;
+  if(slot==='accessory')slot=!state.equipped.accessory1?'accessory1':(!state.equipped.accessory2?'accessory2':'accessory1');
+  state.equipped[slot]=itemId;
+  saveState();showToast('EQUIPPED — '+p.icon+' '+p.name,'gold');renderInventoryPane();
+}
+
+function unequipItem(slot){
+  if(!state.equipped)return;
+  state.equipped[slot]=null;
+  saveState();showToast('UNEQUIPPED');renderInventoryPane();
+}
+
+function useInventoryItem(itemId){
+  var entry=state.inventory.find(function(e){return e.itemId===itemId;});
+  var p=getPoolItem(itemId);
+  if(!entry||!p||p.type!=='use')return;
+  applyGachaItem(p);
+  entry.qty=(entry.qty||1)-1;
+  if(entry.qty<=0)state.inventory=state.inventory.filter(function(e){return e!==entry;});
+  saveState();showToast('USED — '+p.icon+' '+p.name,'purple');
+  renderInventoryPane();renderStats();updateMiniBar();
+}
+
+function renderInventoryPane(){
+  var eq=state.equipped||{weapon:null,armor:null,accessory1:null,accessory2:null};
+  function slotCard(slot,label){
+    var p=getPoolItem(eq[slot]);
+    if(!p)return '<div class="equip-slot"><div class="es-label">'+label+'</div><div class="es-icon">—</div><div class="es-name" style="color:var(--muted);">EMPTY</div></div>';
+    return '<div class="equip-slot filled"><div class="es-label">'+label+'</div><div class="es-icon">'+p.icon+'</div><div class="es-name">'+p.name+'</div><div class="es-mod">'+p.bonus+'</div><button class="inv-btn unequip" onclick="unequipItem(\''+slot+'\')">Unequip</button></div>';
+  }
+  document.getElementById('equippedContent').innerHTML=slotCard('weapon','WEAPON')+slotCard('armor','ARMOR')+slotCard('accessory1','ACCESSORY 1')+slotCard('accessory2','ACCESSORY 2');
+
+  var grid=document.getElementById('invGridContent');
+  if(!state.inventory.length){grid.innerHTML='<div class="empty">INVENTORY EMPTY — OPEN A CHEST TO COLLECT ITEMS.</div>';return;}
   var rc={1:'var(--muted)',2:'#378ADD',3:'var(--gold)',4:'var(--purple)',5:'#ff6fa1'};
-  inv.innerHTML=state.inventory.slice(0,20).map(function(item){
-    return '<div class="inv-item"><div><div class="ii-name">'+item.icon+' '+item.name+(item.unique?' <span style="font-size:7px;color:var(--gold);">[UNIQUE]</span>':'')+'</div><div class="ii-desc">'+(item.bonus||item.desc)+' — '+item.acquired+'</div></div><div style="color:'+rc[item.stars]+';font-size:10px;">'+(starsStr[item.stars]||'★')+'</div></div>';
+  var slotKeys=['weapon','armor','accessory1','accessory2'];
+  grid.innerHTML=state.inventory.map(function(entry){
+    var p=getPoolItem(entry.itemId);
+    if(!p)return '<div class="inv-item"><div class="ii-name">'+(entry.icon||'🎁')+' '+(entry.name||'ITEM')+'</div><div class="ii-desc">'+(entry.bonus||entry.desc||'')+'</div></div>';
+    var equippedSlot=slotKeys.find(function(s){return eq[s]===entry.itemId;});
+    var actionBtn=p.type==='equip'
+      ?(equippedSlot?'<button class="inv-btn unequip" onclick="unequipItem(\''+equippedSlot+'\')">Unequip</button>':'<button class="inv-btn equip" onclick="equipItem(\''+entry.itemId+'\')">Equip</button>')
+      :'<button class="inv-btn use" onclick="useInventoryItem(\''+entry.itemId+'\')">Use</button>';
+    return '<div class="inv-item">'+(entry.qty>1?'<span class="ii-qty">x'+entry.qty+'</span>':'')+'<div class="ii-name" style="color:'+rc[p.stars]+';">'+p.icon+' '+p.name+(equippedSlot?' <span style="font-size:7px;color:var(--success);">[EQUIPPED]</span>':'')+'</div><div class="ii-desc">'+p.bonus+'</div>'+actionBtn+'</div>';
   }).join('');
 }
 
@@ -3088,12 +3187,10 @@ function completeEmergencyQuest(){
   if(!state.emergencyQuest||state.emergencyQuest.completed)return;
   if(Date.now()>state.emergencyQuest.deadline){showToast('EMERGENCY QUEST EXPIRED!','danger');state.emergencyQuest=null;saveState();document.getElementById('emergencyBanner').style.display='none';return;}
   state.emergencyQuest.completed=true;addXP(150);
-  var eligibleItems=GACHA_POOL.filter(function(x){return x.stars>=3&&(!state.ownedItems||state.ownedItems.indexOf(x.id)===-1);});
+  var eligibleItems=GACHA_POOL.filter(function(x){return x.stars>=3;});
   if(!eligibleItems.length)eligibleItems=GACHA_POOL.filter(function(x){return x.stars<=2;});
   var item=eligibleItems[Math.floor(Math.random()*eligibleItems.length)];
-  applyGachaItem(item);
-  if(item.stars>=3){if(!state.ownedItems)state.ownedItems=[];if(state.ownedItems.indexOf(item.id)===-1)state.ownedItems.push(item.id);}
-  state.inventory.unshift({id:Date.now(),icon:item.icon,name:item.name,desc:'Emergency reward',stars:item.stars,acquired:new Date().toLocaleDateString(),bonus:item.bonus});
+  addItemToInventory(item);
   saveState();showToast('EMERGENCY CLEARED — '+item.name,'purple');document.getElementById('emergencyBanner').style.display='none';
 }
 
@@ -3223,6 +3320,40 @@ async function renderStats(){
       outEl.innerHTML='<div class="empty">NO ANOMALIES DETECTED — ACTIVITY WITHIN NORMAL RANGE.</div>';
     }
   }
+  renderActiveBuffsPanel();
+}
+
+function renderActiveBuffsPanel(){
+  var el=document.getElementById('activeBuffsContent');if(!el)return;
+  var gearXP=getEquippedModifierTotal('xp'),shadowXP=getShadowXPBoost(),titleXP=getEquippedTitleBonus('xp'),dailyXP=0;
+  var gearBoss=getEquippedModifierTotal('boss'),titleBoss=getEquippedTitleBonus('boss');
+  var gearStreak=getEquippedModifierTotal('streak'),streakBonus=getStreakMult()-1,dungeonBonus=getDungeonMult()-1;
+  function pctRow(label,pct){return pct>0?('<div class="buff-row"><span>'+label+'</span><span class="buff-val">+'+(Math.round(pct*1000)/10)+'%</span></div>'):('<div class="buff-row off"><span>'+label+'</span><span>—</span></div>');}
+
+  var xpTotal=(1+gearXP)*(1+shadowXP)*(1+titleXP)*(1+dailyXP)-1;
+  var xpHtml=xpTotal<=0?'<div class="buff-empty">No active XP modifiers</div>':(
+    pctRow('Gear',gearXP)+pctRow('Soldiers',shadowXP)+pctRow('Titles',titleXP)+pctRow('Daily Boosts',dailyXP)+
+    '<div class="buff-row total"><span>Total XP Multiplier</span><span class="buff-val">×'+(1+xpTotal).toFixed(2)+'</span></div>'
+  );
+
+  var bossTotal=gearBoss+titleBoss;
+  var combatHtml=bossTotal<=0?'<div class="buff-empty">No active combat modifiers</div>':(
+    pctRow('Gear',gearBoss)+pctRow('Titles',titleBoss)+
+    '<div class="buff-row total"><span>Total Boss Damage</span><span class="buff-val">+'+(Math.round(bossTotal*1000)/10)+'%</span></div>'
+  );
+
+  var utilTotal=streakBonus+dungeonBonus+gearStreak;
+  var dungeonName=state.dungeon&&DUNGEONS[state.dungeon.type]?DUNGEONS[state.dungeon.type].name:'';
+  var utilHtml=utilTotal<=0?'<div class="buff-empty">No active streak or utility modifiers</div>':(
+    (streakBonus>0?('<div class="buff-row"><span>Streak Bonus ('+state.streak.current+'d)</span><span class="buff-val">×'+(1+streakBonus).toFixed(2)+'</span></div>'):'<div class="buff-row off"><span>Streak Bonus</span><span>—</span></div>')+
+    pctRow('Gear Streak Bonus',gearStreak)+
+    (dungeonBonus>0?('<div class="buff-row"><span>Dungeon Multiplier'+(dungeonName?' ('+dungeonName+')':'')+'</span><span class="buff-val">×'+(1+dungeonBonus).toFixed(2)+'</span></div>'):'<div class="buff-row off"><span>Dungeon Multiplier</span><span>—</span></div>')
+  );
+
+  el.innerHTML=
+    '<div class="buff-cat"><div class="buff-cat-title">📈 XP Modifiers</div>'+xpHtml+'</div>'+
+    '<div class="buff-cat"><div class="buff-cat-title">⚔️ Combat Modifiers</div>'+combatHtml+'</div>'+
+    '<div class="buff-cat"><div class="buff-cat-title">🔥 Streak & Utility Modifiers</div>'+utilHtml+'</div>';
 }
 
 function updateMiniBar(){['str','agi','int','vit','sen'].forEach(function(k){var e=document.getElementById('mini-'+k);if(e)e.textContent=state.stats[k];});var ae=document.getElementById('mini-army');if(ae)ae.textContent=state.shadowArmy.length+'/'+SHADOW_SOLDIERS.length;}
@@ -3259,7 +3390,7 @@ function updateUI(){
 // ═══════════════════════════════════════════════════════
 // TAB SWITCHING
 // ═══════════════════════════════════════════════════════
-var TABS=['quests','dungeon','story','shadow','gacha','stats','rank','titles','guild'];
+var TABS=['quests','dungeon','story','shadow','gacha','inventory','stats','rank','titles','guild'];
 function switchTab(tab){
   TABS.forEach(function(t){
     document.getElementById('pane-'+t).style.display=t===tab?'block':'none';
@@ -3269,6 +3400,7 @@ function switchTab(tab){
   if(tab==='story')renderStoryPane();
   if(tab==='shadow')renderShadowArmy();
   if(tab==='gacha')renderGachaPane();
+  if(tab==='inventory')renderInventoryPane();
   if(tab==='stats')renderStats();
   if(tab==='rank')renderRankPane();
   if(tab==='titles'){renderTitlesPane();updateEquippedTitle();}
@@ -3360,9 +3492,7 @@ async function handleSignup(){
     currentUser=data.username;
     state=loadState();
     if(state.name==='HUNTER')state.name=username.toUpperCase();
-    // Push brand-new profile to cloud so device 2 can pull it on first login.
     saveState();
-    await CloudSync.flushNow();
     hideAuthOverlay();
     showToast('HUNTER REGISTERED — WELCOME, '+username.toUpperCase(),'success');
     init();
@@ -3385,34 +3515,17 @@ async function handleLogin(){
     if(!res.ok){errEl.textContent=data.detail||'Invalid username or password.';return;}
     setSession(data);
     currentUser=data.username;
-
-    // ── CLOUD SAVE RESTORE ───────────────────────────────
-    // 1. Load local state (fast, no network — gives instant first paint)
     state=loadState();
-    // 2. Pull cloud profile and merge (newest _savedAt timestamp wins)
-    errEl.textContent='SYNCING CLOUD DATA...';
-    var cloudProfile = await CloudSync.pull();
-    var applied = CloudSync.mergeCloud(cloudProfile);
-    // 3. Write merged state back to localStorage so it's coherent locally
-    try{ localStorage.setItem(stateKey(), JSON.stringify(state)); }catch(e){}
-    // 4. If local was newer, push it up to sync the cloud as well
-    if(!applied && cloudProfile !== null){ await CloudSync.flushNow(); }
-    // ────────────────────────────────────────────────────
-
     hideAuthOverlay();
-    var syncMsg = cloudProfile ? ' — CLOUD DATA RESTORED' : '';
-    showToast('WELCOME BACK, '+data.username.toUpperCase()+syncMsg,'success');
+    showToast('WELCOME BACK, '+data.username.toUpperCase(),'success');
     init();
     if(data.is_admin) initAdminPanel();
   }catch(e){errEl.textContent='Cannot reach server. Check your connection.';}
 }
 
-async function logOut(){
+function logOut(){
   if(!confirm('Log out of the current hunter account?'))return;
-  // Flush any pending debounced writes to cloud before ending the session.
-  // This prevents data loss if the user logged progress in the last 2 s.
   saveState();
-  await CloudSync.flushNow();
   clearSession();
   currentUser=null;
   document.getElementById('loginUsername').value='';
@@ -4188,6 +4301,71 @@ function initAdminPanel(){
 </script>
 
 <script>
+// ══════════════════════════════════════════════════════════
+// PROFILE PICTURE CUSTOMIZATION
+// ══════════════════════════════════════════════════════════
+(function(){
+  var PHOTO_KEY = 'sl_profile_photo';
+
+  function applyPhoto(dataUrl) {
+    var img = document.getElementById('avPhoto');
+    var icon = document.getElementById('avIcon');
+    if (!img || !icon) return;
+    if (dataUrl) {
+      img.src = dataUrl;
+      img.style.display = 'block';
+      icon.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      icon.style.display = '';
+    }
+  }
+
+  // Load saved photo on start
+  try {
+    var saved = localStorage.getItem(PHOTO_KEY);
+    if (saved) applyPhoto(saved);
+  } catch(e) {}
+
+  // Click / tap on the avatar wrap triggers file picker
+  var wrap = document.getElementById('avWrap');
+  var fileInput = document.getElementById('profileFileInput');
+  if (!wrap || !fileInput) return;
+
+  wrap.addEventListener('click', function() {
+    fileInput.value = ''; // reset so same file can be re-selected
+    fileInput.click();
+  });
+
+  // Mobile: touch feedback for overlay visibility
+  wrap.addEventListener('touchstart', function() {
+    wrap.classList.add('touch-hover');
+  }, { passive: true });
+  wrap.addEventListener('touchend', function() {
+    setTimeout(function(){ wrap.classList.remove('touch-hover'); }, 400);
+  }, { passive: true });
+
+  fileInput.addEventListener('change', function() {
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    var allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowed.indexOf(file.type) === -1) return;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      applyPhoto(dataUrl);
+      try { localStorage.setItem(PHOTO_KEY, dataUrl); } catch(err) {}
+    };
+    reader.readAsDataURL(file);
+  });
+})();
+// ══════════════════════════════════════════════════════════
+// END PROFILE PICTURE CUSTOMIZATION
+// ══════════════════════════════════════════════════════════
+</script>
+
+<script>
 // ── BOTTOM NAV SYNC ──────────────────────────────────────
 // Keeps bottom nav active state in sync with the top tab nav
 (function(){
@@ -4196,6 +4374,7 @@ function initAdminPanel(){
     'dungeon': 'bnb-dungeon',
     'shadow': 'bnb-shadow',
     'gacha': 'bnb-gacha',
+    'inventory': 'bnb-gacha',
     'stats': 'bnb-stats',
     'story': 'bnb-quests',   // map extras to closest
     'rank': 'bnb-stats',
@@ -4244,6 +4423,7 @@ function initAdminPanel(){
     'dungeon': 'bnb-dungeon',
     'shadow': 'bnb-shadow',
     'gacha': 'bnb-gacha',
+    'inventory': 'bnb-gacha',
     'stats': 'bnb-stats',
     'story': 'bnb-quests',   // map extras to closest
     'rank': 'bnb-stats',
