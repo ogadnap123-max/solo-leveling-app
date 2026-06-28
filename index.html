@@ -1151,6 +1151,107 @@ body::before{
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important}}
 
+
+/* ── AWAKENING SYSTEM PANEL ──────────────────────── */
+.awakening-overlay{
+  display:none;position:fixed;inset:0;z-index:2000;
+  background:rgba(0,4,20,0.97);
+  align-items:center;justify-content:center;
+  flex-direction:column;
+}
+.awakening-overlay.active{display:flex;}
+@keyframes aw-scanline{
+  0%{top:-10%}100%{top:110%}
+}
+@keyframes aw-flicker{
+  0%,100%{opacity:1}18%{opacity:.92}20%{opacity:.6}22%{opacity:.95}80%{opacity:1}
+}
+@keyframes aw-glow-pulse{
+  0%,100%{box-shadow:0 0 30px rgba(0,170,255,0.35),0 0 60px rgba(0,100,255,0.15),inset 0 0 30px rgba(0,100,255,0.06)}
+  50%{box-shadow:0 0 50px rgba(0,200,255,0.55),0 0 100px rgba(0,120,255,0.25),inset 0 0 40px rgba(0,150,255,0.12)}
+}
+@keyframes aw-border-flicker{
+  0%,100%{opacity:1}50%{opacity:.7}75%{opacity:.9}
+}
+.aw-panel{
+  position:relative;
+  background:rgba(2,8,30,0.96);
+  border:1.5px solid rgba(0,170,255,0.6);
+  border-radius:6px;
+  padding:36px 32px 28px;
+  width:min(340px,88vw);
+  text-align:center;
+  overflow:hidden;
+  animation:aw-glow-pulse 2.8s ease-in-out infinite, aw-flicker 6s ease-in-out infinite;
+}
+/* corner accents */
+.aw-panel::before,.aw-panel::after{
+  content:'';position:absolute;width:16px;height:16px;
+  border-color:rgba(0,200,255,0.9);border-style:solid;
+}
+.aw-panel::before{top:8px;left:8px;border-width:2px 0 0 2px;}
+.aw-panel::after{bottom:8px;right:8px;border-width:0 2px 2px 0;}
+/* scanline */
+.aw-panel .aw-scan{
+  position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,180,255,0.4),transparent);
+  animation:aw-scanline 3s linear infinite;
+  pointer-events:none;
+}
+.aw-icon{
+  font-size:22px;
+  border:1.5px solid rgba(0,170,255,0.6);
+  border-radius:4px;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:38px;height:38px;margin:0 auto 16px;
+  background:rgba(0,100,255,0.08);
+  color:rgba(0,200,255,0.9);
+  font-style:normal;font-family:var(--orb);font-size:18px;font-weight:700;
+}
+.aw-title{
+  font-size:15px;font-weight:800;letter-spacing:.18em;
+  color:rgba(0,210,255,0.95);font-family:var(--orb);
+  margin-bottom:20px;text-shadow:0 0 12px rgba(0,180,255,0.5);
+}
+.aw-body{
+  font-size:13px;color:rgba(200,220,255,0.88);
+  line-height:1.85;margin-bottom:28px;
+  font-family:var(--sans);
+}
+.aw-body .aw-red{color:#ff4057;font-weight:700;}
+.aw-buttons{display:flex;gap:14px;justify-content:center;}
+.aw-btn{
+  flex:1;max-width:120px;
+  padding:11px 0;
+  font-size:13px;font-weight:700;letter-spacing:.1em;
+  font-family:var(--orb);cursor:pointer;
+  border-radius:4px;transition:all .18s;
+  border:1.5px solid;
+}
+.aw-btn.accept{
+  background:rgba(0,120,255,0.12);
+  border-color:rgba(0,170,255,0.7);
+  color:rgba(100,210,255,0.95);
+}
+.aw-btn.accept:hover,.aw-btn.accept:active{
+  background:rgba(0,150,255,0.25);
+  box-shadow:0 0 16px rgba(0,160,255,0.4);
+}
+.aw-btn.decline{
+  background:rgba(255,40,60,0.06);
+  border-color:rgba(255,60,80,0.5);
+  color:rgba(255,100,120,0.9);
+}
+.aw-btn.decline:hover,.aw-btn.decline:active{
+  background:rgba(255,40,60,0.15);
+}
+/* outer frame lines (decorative) */
+.aw-frame-h,.aw-frame-v{
+  position:absolute;background:rgba(0,160,255,0.5);
+  animation:aw-border-flicker 4s ease-in-out infinite;
+}
+.aw-frame-h{height:1px;left:-20px;right:-20px;top:50%;}
+.aw-frame-v{width:1px;top:-20px;bottom:-20px;left:50%;display:none;}
 </style>
 </head>
 <body>
@@ -3504,8 +3605,7 @@ async function handleSignup(){
     if(state.name==='HUNTER')state.name=username.toUpperCase();
     saveState();
     hideAuthOverlay();
-    showToast('HUNTER REGISTERED — WELCOME, '+username.toUpperCase(),'success');
-    init();
+    showAwakeningPanel();
   }catch(e){errEl.textContent='Cannot reach server. Check your connection.';}
 }
 
@@ -4453,6 +4553,61 @@ function initAdminPanel(){
   renderSubNav('system', 'quests');
   updateSectionBtns('system');
 })();
+</script>
+
+<!-- SYSTEM AWAKENING PANEL -->
+<div class="awakening-overlay" id="awakeningOverlay">
+  <div class="aw-panel">
+    <div class="aw-scan"></div>
+    <div class="aw-icon">!</div>
+    <div class="aw-title">NOTIFICATION</div>
+    <div class="aw-body">
+      You have been detected as a <span class="aw-red">potential Player</span>.<br>
+      Will you accept the System's call<br>and begin your awakening?
+    </div>
+    <div class="aw-buttons">
+      <button class="aw-btn accept" id="awAcceptBtn">Accept</button>
+      <button class="aw-btn decline" id="awDeclineBtn">Decline</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// SYSTEM AWAKENING PANEL CONTROLLER
+// Shown on new registration only.
+// Accept → init app normally + congrats toast
+// Decline → clear session + return to auth screen
+// ══════════════════════════════════════════════════════════
+function showAwakeningPanel(){
+  var overlay = document.getElementById('awakeningOverlay');
+  if(overlay) overlay.classList.add('active');
+}
+
+function hideAwakeningPanel(){
+  var overlay = document.getElementById('awakeningOverlay');
+  if(overlay) overlay.classList.remove('active');
+}
+
+document.getElementById('awAcceptBtn').addEventListener('click', function(){
+  hideAwakeningPanel();
+  init();
+  setTimeout(function(){
+    showToast('✦ YOU HAVE AWAKENED AS A PLAYER ✦', 'success');
+  }, 600);
+});
+
+document.getElementById('awDeclineBtn').addEventListener('click', function(){
+  hideAwakeningPanel();
+  // Clear session and kick back to auth
+  saveState();
+  clearSession();
+  currentUser = null;
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  switchAuthTab('login');
+  document.getElementById('authOverlay').classList.remove('hidden');
+});
 </script>
 
 </body>
