@@ -331,25 +331,29 @@ body::before{
 .si-val.g{color:var(--success)}
 .sdiv{display:none}
 
-/* ── TOP NAV (secondary, tab scroll) ────────────── */
-.nav{
+/* ── LEGACY TOP NAV (hidden — preserve JS bindings) ── */
+.nav{ display:none }
+.nb{ display:none }
+
+/* ── SUB-NAV PILLS ───────────────────────────────── */
+.sub-nav{
   display:flex;background:transparent;
-  padding:4px 16px 0;
+  padding:8px 16px 4px;
   flex-shrink:0;overflow-x:auto;
-  scrollbar-width:none;gap:4px;
+  scrollbar-width:none;gap:6px;
 }
-.nav::-webkit-scrollbar{display:none}
-.nb{
-  flex-shrink:0;padding:7px 14px;
+.sub-nav::-webkit-scrollbar{display:none}
+.sub-pill{
+  flex-shrink:0;padding:6px 14px;
   font-size:11px;font-weight:600;
-  background:transparent;
-  border:1px solid transparent;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
   border-radius:20px;
   color:var(--muted);cursor:pointer;
   font-family:var(--sans);
   transition:all .18s;white-space:nowrap;
 }
-.nb.active{
+.sub-pill.active{
   color:var(--accent2);
   background:rgba(139,92,246,0.15);
   border-color:rgba(139,92,246,0.3);
@@ -374,12 +378,12 @@ body::before{
   width:100%;max-width:430px;
   height:calc(var(--nav-h) + var(--safe-bottom));
   padding-bottom:var(--safe-bottom);
-  background:rgba(10,8,18,0.92);
-  border-top:1px solid rgba(139,92,246,0.2);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  background:rgba(10,8,18,0.95);
+  border-top:1px solid rgba(139,92,246,0.25);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   display:flex;align-items:flex-start;justify-content:space-around;
   padding-top:10px;z-index:100;
-  box-shadow:0 -1px 40px rgba(0,0,0,0.6);
+  box-shadow:0 -1px 40px rgba(0,0,0,0.7);
 }
 .bn-btn{
   display:flex;flex-direction:column;align-items:center;gap:3px;
@@ -1278,8 +1282,8 @@ body::before{
   <div class="si" id="dungeonSI" style="display:none;"><i class="ti ti-sword" style="font-size:18px;" id="dungeonIcon"></i><div><div class="si-lbl">DUNGEON</div><div class="si-val" id="dungeonType" style="font-size:12px;">—</div></div></div>
 </div>
 
-<!-- SECONDARY TAB NAV -->
-<div class="nav">
+<!-- LEGACY TAB NAV (hidden — preserves JS bindings) -->
+<div class="nav" aria-hidden="true">
   <button class="nb active" id="nb-quests">Quests</button>
   <button class="nb" id="nb-dungeon">Dungeon</button>
   <button class="nb" id="nb-story">Story</button>
@@ -1290,6 +1294,11 @@ body::before{
   <button class="nb" id="nb-rank">Rank</button>
   <button class="nb" id="nb-titles">Titles</button>
   <button class="nb" id="nb-guild">Guild</button>
+</div>
+
+<!-- SUB-NAV PILLS (dynamic, swapped by section) -->
+<div class="sub-nav" id="subNavBar">
+  <!-- injected by switchSection() -->
 </div>
 
 <!-- MAIN CONTENT -->
@@ -1413,27 +1422,28 @@ body::before{
 
 </div>
 
-<!-- BOTTOM NAVIGATION BAR -->
+<!-- LEGACY BNB (hidden — preserves BNB_MAP bindings) -->
+<div style="display:none" aria-hidden="true">
+  <button id="bnb-quests" class="bn-btn active" data-pane="quests"></button>
+  <button id="bnb-dungeon" class="bn-btn" data-pane="dungeon"></button>
+  <button id="bnb-shadow" class="bn-btn" data-pane="shadow"></button>
+  <button id="bnb-gacha" class="bn-btn" data-pane="gacha"></button>
+  <button id="bnb-stats" class="bn-btn" data-pane="stats"></button>
+</div>
+
+<!-- PRIMARY BOTTOM NAVIGATION (3 sections) -->
 <nav class="bottom-nav" id="bottomNav">
-  <button class="bn-btn active" data-pane="quests" id="bnb-quests">
-    <div class="bn-icon"><i class="ti ti-sword"></i></div>
-    <span class="bn-label">Quests</span>
+  <button class="bn-btn active" id="sec-system" onclick="switchSection('system')">
+    <div class="bn-icon"><i class="ti ti-layout-grid"></i></div>
+    <span class="bn-label">SYSTEM</span>
   </button>
-  <button class="bn-btn" data-pane="dungeon" id="bnb-dungeon">
-    <div class="bn-icon"><i class="ti ti-door-enter"></i></div>
-    <span class="bn-label">Dungeon</span>
+  <button class="bn-btn" id="sec-world" onclick="switchSection('world')">
+    <div class="bn-icon"><i class="ti ti-world"></i></div>
+    <span class="bn-label">WORLD</span>
   </button>
-  <button class="bn-btn" data-pane="shadow" id="bnb-shadow">
-    <div class="bn-icon"><i class="ti ti-users"></i></div>
-    <span class="bn-label">Army</span>
-  </button>
-  <button class="bn-btn" data-pane="gacha" id="bnb-gacha">
-    <div class="bn-icon"><i class="ti ti-gift"></i></div>
-    <span class="bn-label">Gacha</span>
-  </button>
-  <button class="bn-btn" data-pane="stats" id="bnb-stats">
-    <div class="bn-icon"><i class="ti ti-chart-bar"></i></div>
-    <span class="bn-label">Stats</span>
+  <button class="bn-btn" id="sec-profile" onclick="switchSection('profile')">
+    <div class="bn-icon"><i class="ti ti-user-circle"></i></div>
+    <span class="bn-label">PROFILE</span>
   </button>
 </nav>
 
@@ -4366,96 +4376,82 @@ function initAdminPanel(){
 </script>
 
 <script>
-// ── BOTTOM NAV SYNC ──────────────────────────────────────
-// Keeps bottom nav active state in sync with the top tab nav
+// ══════════════════════════════════════════════════════════
+// SECTION NAVIGATION CONTROLLER
+// 3 sections: system | world | profile
+// ══════════════════════════════════════════════════════════
 (function(){
-  var BNB_MAP = {
-    'quests': 'bnb-quests',
-    'dungeon': 'bnb-dungeon',
-    'shadow': 'bnb-shadow',
-    'gacha': 'bnb-gacha',
-    'inventory': 'bnb-gacha',
-    'stats': 'bnb-stats',
-    'story': 'bnb-quests',   // map extras to closest
-    'rank': 'bnb-stats',
-    'titles': 'bnb-stats',
-    'guild': 'bnb-shadow'
+  var SECTIONS = {
+    system: {
+      tabs: [
+        { id: 'quests',    label: 'Quests',    icon: '⚔️' },
+        { id: 'guild',     label: 'Guild',     icon: '🏰' },
+        { id: 'shadow',    label: 'Army',      icon: '👥' },
+        { id: 'gacha',     label: 'Gacha',     icon: '🎁' },
+        { id: 'inventory', label: 'Inventory', icon: '📦' }
+      ]
+    },
+    world: {
+      tabs: [
+        { id: 'story',   label: 'Story',   icon: '📖' },
+        { id: 'dungeon', label: 'Dungeon', icon: '⚡' }
+      ]
+    },
+    profile: {
+      tabs: [
+        { id: 'stats',  label: 'Stats',  icon: '📊' },
+        { id: 'rank',   label: 'Rank',   icon: '🏆' },
+        { id: 'titles', label: 'Titles', icon: '👑' }
+      ]
+    }
   };
 
-  function syncBottomNav(paneId) {
-    document.querySelectorAll('.bn-btn').forEach(function(b){ b.classList.remove('active'); });
-    var bnbId = BNB_MAP[paneId];
-    if (bnbId) {
-      var el = document.getElementById(bnbId);
-      if (el) el.classList.add('active');
-    }
+  var currentSection = 'system';
+  var currentSubTab  = 'quests';
+
+  function renderSubNav(sectionKey, activeTab) {
+    var bar = document.getElementById('subNavBar');
+    if (!bar) return;
+    var tabs = SECTIONS[sectionKey].tabs;
+    bar.innerHTML = tabs.map(function(t) {
+      var cls = 'sub-pill' + (t.id === activeTab ? ' active' : '');
+      // Use data-tab attribute + addEventListener instead of inline onclick
+      return '<button class="' + cls + '" data-tab="' + t.id + '">'
+           + t.icon + ' ' + t.label + '</button>';
+    }).join('');
+    // Wire click handlers
+    bar.querySelectorAll('[data-tab]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        window.switchSubTab(btn.getAttribute('data-tab'));
+      });
+    });
   }
 
-  // Intercept clicks on top nav buttons
-  document.querySelectorAll('.nb').forEach(function(nb){
-    nb.addEventListener('click', function(){
-      var id = nb.id.replace('nb-','');
-      syncBottomNav(id);
+  function updateSectionBtns(sectionKey) {
+    ['system','world','profile'].forEach(function(s) {
+      var el = document.getElementById('sec-' + s);
+      if (el) el.classList.toggle('active', s === sectionKey);
     });
-  });
+  }
 
-  // Wire bottom nav buttons to trigger top nav
-  document.querySelectorAll('.bn-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var pane = btn.getAttribute('data-pane');
-      var topBtn = document.getElementById('nb-' + pane);
-      if (topBtn) topBtn.click();
-    });
-  });
-})();
-</script>
-
-</body>
-</html>
-
-
-<script>
-// ── BOTTOM NAV SYNC ──────────────────────────────────────
-// Keeps bottom nav active state in sync with the top tab nav
-(function(){
-  var BNB_MAP = {
-    'quests': 'bnb-quests',
-    'dungeon': 'bnb-dungeon',
-    'shadow': 'bnb-shadow',
-    'gacha': 'bnb-gacha',
-    'inventory': 'bnb-gacha',
-    'stats': 'bnb-stats',
-    'story': 'bnb-quests',   // map extras to closest
-    'rank': 'bnb-stats',
-    'titles': 'bnb-stats',
-    'guild': 'bnb-shadow'
+  window.switchSection = function(sectionKey) {
+    currentSection = sectionKey;
+    var firstTab = SECTIONS[sectionKey].tabs[0].id;
+    currentSubTab = firstTab;
+    updateSectionBtns(sectionKey);
+    renderSubNav(sectionKey, firstTab);
+    switchTab(firstTab);
   };
 
-  function syncBottomNav(paneId) {
-    document.querySelectorAll('.bn-btn').forEach(function(b){ b.classList.remove('active'); });
-    var bnbId = BNB_MAP[paneId];
-    if (bnbId) {
-      var el = document.getElementById(bnbId);
-      if (el) el.classList.add('active');
-    }
-  }
+  window.switchSubTab = function(tabId) {
+    currentSubTab = tabId;
+    renderSubNav(currentSection, tabId);
+    switchTab(tabId);
+  };
 
-  // Intercept clicks on top nav buttons
-  document.querySelectorAll('.nb').forEach(function(nb){
-    nb.addEventListener('click', function(){
-      var id = nb.id.replace('nb-','');
-      syncBottomNav(id);
-    });
-  });
-
-  // Wire bottom nav buttons to trigger top nav
-  document.querySelectorAll('.bn-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var pane = btn.getAttribute('data-pane');
-      var topBtn = document.getElementById('nb-' + pane);
-      if (topBtn) topBtn.click();
-    });
-  });
+  // Boot immediately (script is at end of body, DOM is ready)
+  renderSubNav('system', 'quests');
+  updateSectionBtns('system');
 })();
 </script>
 
