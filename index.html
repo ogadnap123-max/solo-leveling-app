@@ -1252,6 +1252,134 @@ body::before{
 }
 .aw-frame-h{height:1px;left:-20px;right:-20px;top:50%;}
 .aw-frame-v{width:1px;top:-20px;bottom:-20px;left:50%;display:none;}
+
+/* ══════════════════════════════════════════════════════════
+   LOGIN REWARDS OVERLAY — SOLO LEVELING STYLE
+   ══════════════════════════════════════════════════════════ */
+#loginRewardOverlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.92);
+  z-index:900;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:24px;text-align:center;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+#loginRewardOverlay.open{display:flex}
+.lr-portal{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.lr-particle{
+  position:absolute;border-radius:50%;
+  animation:lrFloat 4s ease-in-out infinite;
+  opacity:0;
+}
+@keyframes lrFloat{
+  0%{transform:translateY(110vh) scale(0);opacity:0}
+  20%{opacity:.7}
+  80%{opacity:.4}
+  100%{transform:translateY(-60px) scale(1.6);opacity:0}
+}
+.lr-box{
+  background:rgba(12,9,22,0.96);
+  border:1px solid rgba(139,92,246,0.45);
+  border-radius:28px;
+  padding:32px 20px 28px;
+  width:100%;max-width:400px;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 80px rgba(139,92,246,0.2),inset 0 1px 0 rgba(255,255,255,0.06);
+  animation:lrBoxIn .5s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes lrBoxIn{from{transform:scale(0.8) translateY(30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.lr-box::before{
+  content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:240px;height:240px;
+  background:radial-gradient(ellipse,rgba(139,92,246,0.18) 0%,transparent 70%);
+  pointer-events:none;
+}
+.lr-system-label{
+  font-size:9px;color:rgba(139,92,246,.6);
+  letter-spacing:.2em;margin-bottom:16px;
+  font-family:var(--orb);font-weight:700;
+  animation:lrFadeUp .4s .1s both;
+}
+@keyframes lrFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.lr-day-track{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:5px;
+  margin-bottom:20px;
+  animation:lrFadeUp .4s .15s both;
+}
+.lr-day-dot{
+  aspect-ratio:1;border-radius:8px;
+  border:1px solid rgba(139,92,246,.25);
+  background:rgba(139,92,246,.04);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-family:var(--orb);font-weight:700;
+  transition:all .3s;position:relative;padding:2px;
+}
+.lr-day-dot .lr-dd-num{font-size:8px;color:var(--muted);letter-spacing:.02em;}
+.lr-day-dot .lr-dd-icon{font-size:14px;line-height:1;filter:grayscale(1);opacity:.5;}
+.lr-day-dot.milestone{border-color:rgba(245,158,11,.3);}
+.lr-day-dot.milestone .lr-dd-num{color:rgba(245,158,11,.6);}
+.lr-day-dot.claimed{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-color:transparent;
+  box-shadow:0 0 8px rgba(139,92,246,.45);
+}
+.lr-day-dot.claimed .lr-dd-num{color:rgba(255,255,255,.85);}
+.lr-day-dot.claimed .lr-dd-icon{filter:none;opacity:1;}
+.lr-day-dot.today{
+  border-color:var(--gold);
+  background:rgba(245,158,11,.08);
+  box-shadow:0 0 12px rgba(245,158,11,.4);
+  animation:lrTodayPulse 1.5s ease-in-out infinite;
+}
+.lr-day-dot.today .lr-dd-num{color:var(--gold);}
+.lr-day-dot.today .lr-dd-icon{filter:none;opacity:1;}
+@keyframes lrTodayPulse{0%,100%{box-shadow:0 0 12px rgba(245,158,11,.4)}50%{box-shadow:0 0 20px rgba(245,158,11,.65)}}
+.lr-day-dot.locked .lr-dd-icon{filter:grayscale(1);opacity:.35;}
+.lr-day-dot.locked .lr-dd-num{opacity:.5;}
+.lr-reward-icon{
+  font-size:64px;margin-bottom:12px;display:block;
+  animation:lrIconPop .6s .3s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes lrIconPop{from{transform:scale(0) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.lr-day-label{
+  font-size:10px;color:var(--accent3);letter-spacing:.18em;
+  margin-bottom:6px;font-weight:700;font-family:var(--orb);
+  animation:lrFadeUp .4s .35s both;
+}
+.lr-reward-name{
+  font-size:22px;color:#fff;font-weight:900;
+  font-family:var(--orb);letter-spacing:.04em;
+  margin-bottom:6px;
+  text-shadow:0 0 20px rgba(139,92,246,.5);
+  animation:lrFadeUp .4s .4s both;
+}
+.lr-reward-desc{
+  font-size:13px;color:var(--text2);margin-bottom:24px;
+  line-height:1.7;animation:lrFadeUp .4s .45s both;
+}
+.lr-claim-btn{
+  width:100%;padding:15px;
+  border:none;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-family:var(--orb);font-size:14px;font-weight:900;
+  letter-spacing:.1em;cursor:pointer;
+  box-shadow:0 8px 28px rgba(139,92,246,.5);
+  transition:all .2s;
+  animation:lrFadeUp .4s .55s both;
+}
+.lr-claim-btn:active{transform:scale(0.97);box-shadow:0 4px 14px rgba(139,92,246,.3)}
+.lr-claim-btn:disabled{opacity:.5;cursor:not-allowed}
+/* Mystery chest open sub-state */
+.lr-chest-open{
+  font-size:11px;color:var(--gold);
+  margin-top:-16px;margin-bottom:20px;
+  letter-spacing:.06em;font-weight:600;
+  animation:lrFadeUp .3s both;
+  display:none;
+}
+
 </style>
 </head>
 <body>
@@ -1643,6 +1771,21 @@ body::before{
   <div class="gr-name" id="grName">Bronze Dagger</div>
   <div class="gr-bonus" id="grBonus">+5 STR</div>
   <button class="gr-close" id="grClose">Claim Reward</button>
+</div>
+
+<!-- LOGIN REWARDS OVERLAY -->
+<div id="loginRewardOverlay">
+  <div class="lr-portal" id="lrPortal"></div>
+  <div class="lr-box">
+    <div class="lr-system-label">⚡ SYSTEM — DAILY LOGIN REWARD</div>
+    <div class="lr-day-track" id="lrDayTrack"></div>
+    <div class="lr-reward-icon" id="lrRewardIcon">🎁</div>
+    <div class="lr-day-label" id="lrDayLabel">DAY 1 REWARD</div>
+    <div class="lr-reward-name" id="lrRewardName">DAILY REWARD</div>
+    <div class="lr-reward-desc" id="lrRewardDesc">Login reward unlocked.</div>
+    <div class="lr-chest-open" id="lrChestResult"></div>
+    <button class="lr-claim-btn" id="lrClaimBtn">[ CLAIM REWARD ]</button>
+  </div>
 </div>
 
 
@@ -3626,10 +3769,12 @@ async function handleLogin(){
     setSession(data);
     currentUser=data.username;
     state=loadState();
+    if(window.loadUserPhoto)window.loadUserPhoto();
     hideAuthOverlay();
     showToast('WELCOME BACK, '+data.username.toUpperCase(),'success');
     init();
     if(data.is_admin) initAdminPanel();
+    if(window.checkLoginReward)window.checkLoginReward();
   }catch(e){errEl.textContent='Cannot reach server. Check your connection.';}
 }
 
@@ -3638,6 +3783,7 @@ function logOut(){
   saveState();
   clearSession();
   currentUser=null;
+  if(window.clearPhoto)window.clearPhoto();
   document.getElementById('loginUsername').value='';
   document.getElementById('loginPassword').value='';
   switchAuthTab('login');
@@ -3788,6 +3934,7 @@ if(currentUser){
   hideAuthOverlay();
   init();
   initAdminPanel();
+  setTimeout(function(){ if(window.checkLoginReward)window.checkLoginReward(); }, 0);
 } else {
   switchAuthTab('login');
   setTimeout(function(){document.getElementById('loginUsername').focus();},150);
@@ -4412,10 +4559,407 @@ function initAdminPanel(){
 
 <script>
 // ══════════════════════════════════════════════════════════
+// LOGIN REWARDS SYSTEM — 30-DAY CYCLE
+// Isolated feature — does NOT modify existing auth, login,
+// registration, XP, inventory, or title systems directly.
+// Uses existing addXP(), state.inventory, state.titles,
+// state.ownedItems, GACHA_POOL, ALL_TITLES.
+//
+// Two reward pools (CYCLE A / CYCLE B) alternate every 30 days
+// so a returning hunter sees different rewards each time they
+// loop back to Day 1, while the day structure (1-30, milestones
+// at 10/20/30) stays identical.
+// ══════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // ── Configuration ────────────────────────────────────
+  var LR_STATE_KEY_PREFIX = 'sl_lr_v2_'; // v2: 30-day schedule, separate from old v1 state
+
+  // ── Reward Schedule — CYCLE A (cycles 1, 3, 5, ...) ──
+  // Days 10/20/30 are the big milestones; 30 is the best reward.
+  var LR_SCHEDULE_A = {
+    1:  { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+100 Bonus XP granted to your hunter.',        type:'xp',   value:100 },
+    2:  { icon:'🧪', name:'HP POTION CACHE',      desc:'A stash of recovery potions.',                 type:'item', value:'hp_potion' },
+    3:  { icon:'📦', name:'MYSTERY CHEST',        desc:'Open the chest to reveal a random item.',      type:'chest' },
+    4:  { icon:'💊', name:'STAMINA PILL CACHE',   desc:'A stash of stamina pills.',                    type:'item', value:'stamina_pill' },
+    5:  { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+150 Bonus XP granted to your hunter.',        type:'xp',   value:150 },
+    6:  { icon:'💰', name:'GOLD COIN CACHE',      desc:'A stash of gold coins.',                       type:'item', value:'gold_coin' },
+    7:  { icon:'💎', name:'RARE EQUIPMENT DROP',  desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    8:  { icon:'📜', name:'SKILL SCROLL CACHE',   desc:'A stash of skill scrolls.',                     type:'item', value:'skill_scroll' },
+    9:  { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+200 Bonus XP granted to your hunter.',        type:'xp',   value:200 },
+    10: { icon:'⚔️', name:'IRON SWORD',           desc:'A reliable blade for the disciplined hunter.',  type:'item', value:'iron_sword' },
+    11: { icon:'🩹', name:'BANDAGE CACHE',        desc:'A stash of bandages.',                          type:'item', value:'bandage' },
+    12: { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+150 Bonus XP granted to your hunter.',        type:'xp',   value:150 },
+    13: { icon:'📦', name:'MYSTERY CHEST',        desc:'Open the chest to reveal a random item.',      type:'chest' },
+    14: { icon:'💍', name:'STEALTH RING',         desc:'A ring favored by shadow hunters.',             type:'item', value:'stealth_ring' },
+    15: { icon:'💎', name:'RARE EQUIPMENT DROP',  desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    16: { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+200 Bonus XP granted to your hunter.',        type:'xp',   value:200 },
+    17: { icon:'📦', name:'MYSTERY CHEST',        desc:'Open the chest to reveal a random item.',      type:'chest' },
+    18: { icon:'🛡️', name:'LEATHER ARMOR',        desc:'Light armor for the up-and-coming hunter.',     type:'item', value:'leather_armor' },
+    19: { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+250 Bonus XP granted to your hunter.',        type:'xp',   value:250 },
+    20: { icon:'🗡️', name:"BARUKA'S DAGGER",      desc:'A legendary dagger from the double dungeon.',   type:'item', value:'baruka_dagger' },
+    21: { icon:'💎', name:'RARE EQUIPMENT DROP',  desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    22: { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+250 Bonus XP granted to your hunter.',        type:'xp',   value:250 },
+    23: { icon:'📦', name:'MYSTERY CHEST',        desc:'Open the chest to reveal a random item.',      type:'chest' },
+    24: { icon:'💎', name:'HIGH ORC MANA STONE',  desc:'A radiant stone humming with power.',           type:'item', value:'high_orc_mana_stone' },
+    25: { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+300 Bonus XP granted to your hunter.',        type:'xp',   value:300 },
+    26: { icon:'📦', name:'MYSTERY CHEST',        desc:'Open the chest to reveal a random item.',      type:'chest' },
+    27: { icon:'💎', name:'RARE EQUIPMENT DROP',  desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    28: { icon:'⚡', name:'EXPERIENCE BOOST',     desc:'+350 Bonus XP granted to your hunter.',        type:'xp',   value:350 },
+    29: { icon:'📦', name:'MYSTERY CHEST',        desc:'Open the chest to reveal a random item.',      type:'chest' },
+    30: { icon:'👑', name:'EXCLUSIVE TITLE — CHOSEN HUNTER', desc:'An exclusive title reserved for loyal hunters who login 30 days.', type:'title', value:'chosen_hunter' }
+  };
+
+  // ── Reward Schedule — CYCLE B (cycles 2, 4, 6, ...) ──
+  // Same day structure / milestone pattern, different rewards.
+  var LR_SCHEDULE_B = {
+    1:  { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+120 Bonus XP granted to your hunter.',        type:'xp',   value:120 },
+    2:  { icon:'🍖', name:'RATION CACHE',          desc:'A stash of rations.',                          type:'item', value:'ration' },
+    3:  { icon:'📦', name:'MYSTERY CHEST',         desc:'Open the chest to reveal a random item.',      type:'chest' },
+    4:  { icon:'⚔️', name:'RUSTY DAGGER',          desc:'A worn blade, but sharp enough to start with.', type:'item', value:'rusty_dagger' },
+    5:  { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+170 Bonus XP granted to your hunter.',        type:'xp',   value:170 },
+    6:  { icon:'🩹', name:'BANDAGE CACHE',         desc:'A stash of bandages.',                         type:'item', value:'bandage' },
+    7:  { icon:'💎', name:'RARE EQUIPMENT DROP',   desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    8:  { icon:'💰', name:'GOLD COIN CACHE',       desc:'A stash of gold coins.',                       type:'item', value:'gold_coin' },
+    9:  { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+220 Bonus XP granted to your hunter.',        type:'xp',   value:220 },
+    10: { icon:'🛡️', name:'KNIGHT ARMOR',          desc:'Sturdy armor worthy of a seasoned hunter.',     type:'item', value:'knight_armor' },
+    11: { icon:'📜', name:'SKILL SCROLL CACHE',    desc:'A stash of skill scrolls.',                     type:'item', value:'skill_scroll' },
+    12: { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+170 Bonus XP granted to your hunter.',        type:'xp',   value:170 },
+    13: { icon:'📦', name:'MYSTERY CHEST',         desc:'Open the chest to reveal a random item.',      type:'chest' },
+    14: { icon:'⚔️', name:'KNIGHT SWORD',          desc:'A blade tempered for boss-tier threats.',       type:'item', value:'knight_sword' },
+    15: { icon:'💎', name:'RARE EQUIPMENT DROP',   desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    16: { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+220 Bonus XP granted to your hunter.',        type:'xp',   value:220 },
+    17: { icon:'📦', name:'MYSTERY CHEST',         desc:'Open the chest to reveal a random item.',      type:'chest' },
+    18: { icon:'📿', name:"KAMISH'S AMULET",       desc:'An amulet pulsing with draconic power.',        type:'item', value:'kamish_amulet' },
+    19: { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+270 Bonus XP granted to your hunter.',        type:'xp',   value:270 },
+    20: { icon:"👑", name:"HUNTER'S CROWN",        desc:'A crown that marks unbroken discipline.',       type:'item', value:'hunters_crown' },
+    21: { icon:'💎', name:'RARE EQUIPMENT DROP',   desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    22: { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+270 Bonus XP granted to your hunter.',        type:'xp',   value:270 },
+    23: { icon:'📦', name:'MYSTERY CHEST',         desc:'Open the chest to reveal a random item.',      type:'chest' },
+    24: { icon:'⚔️', name:"DEMON KING'S BLADE",    desc:'A blade said to have felled a Demon King.',     type:'item', value:'demon_kings_blade' },
+    25: { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+320 Bonus XP granted to your hunter.',        type:'xp',   value:320 },
+    26: { icon:'📦', name:'MYSTERY CHEST',         desc:'Open the chest to reveal a random item.',      type:'chest' },
+    27: { icon:'💎', name:'RARE EQUIPMENT DROP',   desc:'A balanced rare item selected for your rank.',  type:'rare' },
+    28: { icon:'⚡', name:'EXPERIENCE BOOST',      desc:'+370 Bonus XP granted to your hunter.',        type:'xp',   value:370 },
+    29: { icon:'📦', name:'MYSTERY CHEST',         desc:'Open the chest to reveal a random item.',      type:'chest' },
+    30: { icon:'🌑', name:'EXCLUSIVE TITLE — CHOSEN HUNTER', desc:'An exclusive title reserved for loyal hunters who login 30 days.', type:'title', value:'chosen_hunter' }
+  };
+
+  var LR_MILESTONES = [1,3,7,10,15,20,25,30]; // shown as icons on the day track; others render as numbers
+
+  // The exclusive Day-30 title definition — injected at runtime if missing
+  var LR_EXCLUSIVE_TITLE = {
+    id: 'chosen_hunter',
+    name: 'Chosen Hunter',
+    icon: '👑',
+    req: 'login_reward',
+    desc: 'Awarded to hunters who returned for 30 consecutive login rewards.',
+    effect: '+10% all XP gains',
+    reqDesc: 'Login Rewards — Day 30'
+  };
+
+  // Baruka's Dagger — referenced by Cycle A Day 20, injected if missing from GACHA_POOL
+  var BARUKA_DAGGER = {
+    id: 'baruka_dagger',
+    stars: 4,
+    icon: '🗡️',
+    name: "BARUKA'S DAGGER",
+    bonus: '+30 STR, +25 AGI, +200 XP',
+    rarity: 'EPIC'
+  };
+
+  // Mid-tier (stars=3) items only — for the "rare" reward type
+  function getMidTierItems() {
+    var mid = GACHA_POOL.filter(function(item) { return item.stars === 3; });
+    return mid.length ? mid : GACHA_POOL;
+  }
+
+  // ── Per-user state stored separately ─────────────────
+  function lrKey() {
+    return LR_STATE_KEY_PREFIX + (currentUser || 'guest');
+  }
+
+  function loadLRState() {
+    try {
+      var raw = localStorage.getItem(lrKey());
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return { loginDay: 0, lastClaimDate: '', claimedDays: [], cycle: 1 };
+  }
+
+  function saveLRState(lrs) {
+    try { localStorage.setItem(lrKey(), JSON.stringify(lrs)); } catch(e) {}
+  }
+
+  function activeSchedule(cycle) {
+    // Odd cycles use A, even cycles use B
+    return (cycle % 2 === 1) ? LR_SCHEDULE_A : LR_SCHEDULE_B;
+  }
+
+  // ── Day calculation ──────────────────────────────────
+  function todayDateStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  // Advance the login day, cycling 1-30, alternating reward pool each cycle.
+  // Returns null if already claimed today, otherwise the next day number.
+  function computeNextLoginDay(lrs) {
+    var today = todayDateStr();
+    if (lrs.lastClaimDate === '') {
+      lrs.cycle = lrs.cycle || 1;
+      return 1; // first ever login reward
+    }
+    var last = new Date(lrs.lastClaimDate + 'T00:00:00');
+    var now  = new Date(today + 'T00:00:00');
+    var diffDays = Math.round((now - last) / 86400000);
+    if (diffDays <= 0) return null; // already claimed today
+    if (diffDays === 1) {
+      // consecutive day
+      if (lrs.loginDay >= 30) {
+        lrs.cycle = (lrs.cycle || 1) + 1; // completed a 30-day cycle, flip pool
+        return 1;
+      }
+      return lrs.loginDay + 1;
+    }
+    // missed a day — restart at day 1, pool stays on current cycle
+    return 1;
+  }
+
+  // ── Reward grant logic ───────────────────────────────
+  function ensureBarukaDagger() {
+    var exists = GACHA_POOL.find(function(x){ return x.id === 'baruka_dagger'; });
+    if (!exists) GACHA_POOL.push(BARUKA_DAGGER);
+  }
+
+  function ensureExclusiveTitle() {
+    var exists = ALL_TITLES.find(function(t){ return t.id === 'chosen_hunter'; });
+    if (!exists) ALL_TITLES.push(LR_EXCLUSIVE_TITLE);
+  }
+
+  function addItemToInventory(item, sourceDesc) {
+    if (!state.inventory) state.inventory = [];
+    state.inventory.unshift({
+      id: Date.now(),
+      icon: item.icon,
+      name: item.name,
+      desc: sourceDesc || 'Login Reward',
+      stars: item.stars,
+      acquired: new Date().toLocaleDateString(),
+      bonus: item.bonus
+    });
+    if (item.stars >= 3) {
+      if (!state.ownedItems) state.ownedItems = [];
+      if (state.ownedItems.indexOf(item.id) === -1) state.ownedItems.push(item.id);
+    }
+    saveState();
+  }
+
+  function grantTitle(titleId) {
+    if (!state.titles) state.titles = [];
+    if (state.titles.indexOf(titleId) === -1) {
+      state.titles.push(titleId);
+      saveState();
+    }
+  }
+
+  // ── Chest open: random item from ALL of GACHA_POOL ──
+  var _chestResult = null;
+  function openMysteryChest(day) {
+    var pool = GACHA_POOL.slice();
+    var item = pool[Math.floor(Math.random() * pool.length)];
+    _chestResult = item;
+    addItemToInventory(item, 'Mystery Chest (Day ' + day + ')');
+    return item;
+  }
+
+  // ── Rare drop ─────────────────────────────────────────
+  function grantRareItem(day) {
+    var mid = getMidTierItems();
+    var item = mid[Math.floor(Math.random() * mid.length)];
+    addItemToInventory(item, 'Rare Drop (Day ' + day + ')');
+    return item;
+  }
+
+  // ── Particle spawner ─────────────────────────────────
+  function spawnParticles() {
+    var portal = document.getElementById('lrPortal');
+    if (!portal) return;
+    portal.innerHTML = '';
+    var colors = ['#8b5cf6','#a78bfa','#c4b5fd','#f59e0b','#d946ef'];
+    for (var i = 0; i < 28; i++) {
+      var p = document.createElement('div');
+      p.className = 'lr-particle';
+      p.style.width  = (3 + Math.random()*4) + 'px';
+      p.style.height = p.style.width;
+      p.style.left   = Math.random()*100 + '%';
+      p.style.background = colors[Math.floor(Math.random()*colors.length)];
+      p.style.animationDelay    = (Math.random()*3) + 's';
+      p.style.animationDuration = (3 + Math.random()*2.5) + 's';
+      portal.appendChild(p);
+    }
+  }
+
+  // ── Day track renderer ───────────────────────────────
+  // Renders all 30 days as a grid; each card shows the day number and
+  // that day's reward icon. Locked days show the icon grayed out so
+  // hunters can preview the full month at a glance.
+  function renderDayTrack(currentDay, claimedDays, schedule) {
+    var el = document.getElementById('lrDayTrack');
+    if (!el) return;
+    var html = '';
+    for (var d = 1; d <= 30; d++) {
+      var claimed = claimedDays.indexOf(d) !== -1;
+      var isToday = d === currentDay;
+      var isMilestone = LR_MILESTONES.indexOf(d) !== -1;
+      var cls = 'lr-day-dot' + (claimed?' claimed':isToday?' today':' locked') + (isMilestone?' milestone':'');
+      var reward = schedule[d] || schedule[1];
+      var icon = reward.icon;
+      html += '<div class="'+cls+'" title="Day '+d+' — '+reward.name+'">'
+            +   '<span class="lr-dd-num">'+d+'</span>'
+            +   '<span class="lr-dd-icon">'+icon+'</span>'
+            + '</div>';
+    }
+    el.innerHTML = html;
+    // Auto-scroll today's card into view in case the box content overflows
+    var todayEl = el.querySelector('.lr-day-dot.today');
+    if (todayEl) todayEl.scrollIntoView({block:'nearest'});
+  }
+
+  // ── Main overlay builder ─────────────────────────────
+  var _pendingDay = null;
+  var _pendingCycle = null;
+  var _pendingChestOpened = false;
+
+  function buildOverlay(day, cycle, claimedDays) {
+    _pendingDay = day;
+    _pendingCycle = cycle;
+    _pendingChestOpened = false;
+    _chestResult = null;
+
+    var schedule = activeSchedule(cycle);
+    var reward = schedule[day] || schedule[1];
+
+    renderDayTrack(day, claimedDays, schedule);
+    spawnParticles();
+
+    document.getElementById('lrRewardIcon').textContent  = reward.icon;
+    document.getElementById('lrDayLabel').textContent    = 'DAY ' + day + ' OF 30 — CYCLE ' + cycle;
+    document.getElementById('lrRewardName').textContent  = reward.name;
+    document.getElementById('lrRewardDesc').textContent  = reward.desc;
+    document.getElementById('lrChestResult').style.display = 'none';
+    document.getElementById('lrChestResult').textContent = '';
+
+    var btn = document.getElementById('lrClaimBtn');
+    btn.textContent = (reward.type === 'chest') ? '[ OPEN MYSTERY CHEST ]' : '[ CLAIM REWARD ]';
+    btn.disabled = false;
+  }
+
+  // ── Claim handler ────────────────────────────────────
+  function handleClaim() {
+    var btn = document.getElementById('lrClaimBtn');
+    if (!_pendingDay) return;
+
+    var schedule = activeSchedule(_pendingCycle);
+    var reward = schedule[_pendingDay] || { type:'xp', value:50 };
+
+    if (reward.type === 'chest' && !_pendingChestOpened) {
+      var item = openMysteryChest(_pendingDay);
+      _pendingChestOpened = true;
+      var resultEl = document.getElementById('lrChestResult');
+      resultEl.textContent = '✦ ' + item.icon + ' ' + item.name + ' obtained! — ' + item.bonus;
+      resultEl.style.display = 'block';
+      document.getElementById('lrRewardIcon').textContent = item.icon;
+      document.getElementById('lrRewardName').textContent = item.name;
+      document.getElementById('lrRewardDesc').textContent = item.bonus;
+      btn.textContent = '[ CLAIM & CLOSE ]';
+      return; // wait for second tap to close
+    }
+
+    if (reward.type === 'xp') {
+      addXP(reward.value);
+      showToast('LOGIN REWARD — +' + reward.value + ' XP CLAIMED!', 'gold');
+    } else if (reward.type === 'item') {
+      ensureBarukaDagger();
+      var itm = GACHA_POOL.find(function(x){ return x.id === reward.value; });
+      if (itm) {
+        addItemToInventory(itm, 'Login Reward — Day ' + _pendingDay);
+        showToast('LOGIN REWARD — ' + itm.name + ' OBTAINED!', 'purple');
+      }
+    } else if (reward.type === 'chest') {
+      if (_chestResult) showToast('MYSTERY CHEST — ' + _chestResult.name + ' CLAIMED!', 'purple');
+    } else if (reward.type === 'rare') {
+      var rItm = grantRareItem(_pendingDay);
+      showToast('LOGIN REWARD — ' + rItm.name + ' OBTAINED!', 'purple');
+    } else if (reward.type === 'title') {
+      ensureExclusiveTitle();
+      grantTitle(reward.value);
+      if (typeof checkTitleUnlocks === 'function') checkTitleUnlocks();
+      showToast('LOGIN REWARD — EXCLUSIVE TITLE UNLOCKED!', 'gold');
+    }
+
+    var lrs = loadLRState();
+    lrs.loginDay      = _pendingDay;
+    lrs.cycle         = _pendingCycle;
+    lrs.lastClaimDate = todayDateStr();
+    if (_pendingDay === 1) lrs.claimedDays = []; // fresh cycle, clear old ticks
+    if (lrs.claimedDays.indexOf(_pendingDay) === -1) lrs.claimedDays.push(_pendingDay);
+    saveLRState(lrs);
+
+    document.getElementById('loginRewardOverlay').classList.remove('open');
+    _pendingDay = null;
+  }
+
+  // ── Public entry point called after login/init ───────
+  window.checkLoginReward = function() {
+    setTimeout(function() {
+      try {
+        var lrs = loadLRState();
+        var day = computeNextLoginDay(lrs);
+        if (day === null) return; // already claimed today
+        var cycle = lrs.cycle || 1;
+        buildOverlay(day, cycle, lrs.claimedDays || []);
+        document.getElementById('loginRewardOverlay').classList.add('open');
+      } catch(e) {
+        console.warn('[LoginReward] Error:', e);
+      }
+    }, 900);
+  };
+
+  // ── Wire claim button ────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('lrClaimBtn');
+    if (btn) btn.addEventListener('click', handleClaim);
+  });
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    var btn2 = document.getElementById('lrClaimBtn');
+    if (btn2) {
+      btn2.removeEventListener('click', handleClaim);
+      btn2.addEventListener('click', handleClaim);
+    }
+  }
+
+  ensureBarukaDagger();
+  ensureExclusiveTitle();
+
+})();
+// ══════════════════════════════════════════════════════════
+// END LOGIN REWARDS SYSTEM
+// ══════════════════════════════════════════════════════════
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════
 // PROFILE PICTURE CUSTOMIZATION
 // ══════════════════════════════════════════════════════════
 (function(){
-  var PHOTO_KEY = 'sl_profile_photo';
+  // Returns a localStorage key scoped to the current logged-in user.
+  // Falls back to 'guest' only when no user is authenticated, so a
+  // guest photo never bleeds into a real account (and vice versa).
+  function photoKey() {
+    return 'sl_profile_photo_' + (currentUser || 'guest');
+  }
 
   function applyPhoto(dataUrl) {
     var img = document.getElementById('avPhoto');
@@ -4426,16 +4970,26 @@ function initAdminPanel(){
       img.style.display = 'block';
       icon.style.display = 'none';
     } else {
+      img.src = '';
       img.style.display = 'none';
       icon.style.display = '';
     }
   }
 
-  // Load saved photo on start
-  try {
-    var saved = localStorage.getItem(PHOTO_KEY);
-    if (saved) applyPhoto(saved);
-  } catch(e) {}
+  // Exposed globally so login/logout handlers can swap photos per-account.
+  window.loadUserPhoto = function() {
+    try {
+      var saved = localStorage.getItem(photoKey());
+      applyPhoto(saved || null);
+    } catch(e) { applyPhoto(null); }
+  };
+
+  window.clearPhoto = function() {
+    applyPhoto(null);
+  };
+
+  // Load whoever is already logged in on page load.
+  window.loadUserPhoto();
 
   // Click / tap on the avatar wrap triggers file picker
   var wrap = document.getElementById('avWrap');
@@ -4465,7 +5019,7 @@ function initAdminPanel(){
     reader.onload = function(e) {
       var dataUrl = e.target.result;
       applyPhoto(dataUrl);
-      try { localStorage.setItem(PHOTO_KEY, dataUrl); } catch(err) {}
+      try { localStorage.setItem(photoKey(), dataUrl); } catch(err) {}
     };
     reader.readAsDataURL(file);
   });
