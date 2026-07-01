@@ -2205,8 +2205,8 @@ function stateKey(){return 'sl_shadow_v6_'+(currentUser||'guest');}
 
 var state=loadState();
 
-function saveState(){try{localStorage.setItem(stateKey(),JSON.stringify(state));}catch(e){}}
-
+function saveState(){try{localStorage.setItem(stateKey(),JSON.stringify(state));}catch(e){} scheduleCloudPush();}
+   
 function loadState(){
   try{
     var raw=localStorage.getItem(stateKey());
@@ -3163,7 +3163,43 @@ async function ensureBackendUser() {
   }
   return null;
 }
+// ── Cloud save sync (profile-level, uses session.id) ──
+var _cloudPushTimer = null;
+function scheduleCloudPush(){
+  var sess = getSession();
+  if (!sess || !sess.id) return; // not logged in yet, nothing to sync
+  clearTimeout(_cloudPushTimer);
+  _cloudPushTimer = setTimeout(function(){ pushCloudProfile(); }, 2000);
+}
 
+async function pushCloudProfile(){
+  var sess = getSession();
+  if (!sess || !sess.id) return;
+  var payload = Object.assign({}, state, {_savedAt: Date.now()});
+  try{
+    var res = await fetch(GUILD_API + '/users/' + sess.id + '/profile', {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({profile: payload})
+    });
+    console.log('[Cloud] push', res.ok ? 'ok' : 'failed:' + res.status);
+  }catch(e){ console.warn('[Cloud] push error:', e.message); }
+}
+
+async function pullCloudProfile(){
+  var sess = getSession();
+  if (!sess || !sess.id) return false;
+  try{
+    var res = await fetch(GUILD_API + '/users/' + sess.id + '/profile');
+    var data = await res.json();
+    if (res.ok && data.profile) {
+      state = Object.assign({}, DEFAULT_STATE, data.profile);
+      saveState(); // mirror to localStorage, but DON'T re-trigger push (see step 2)
+      console.log('[Cloud] pulled profile, level=', state.level);
+      return true;
+    }
+  }catch(e){ console.warn('[Cloud] pull error:', e.message); }
+  return false;
+}
 // ── API helper ────────────────────────────────────────
 async function guildApiFetch(path, opts) {
   opts = opts || {};
@@ -3745,6 +3781,7 @@ async function handleSignup(){
     setSession(data);
     currentUser=data.username;
     state=loadState();
+    await pullCloudProfile();
     if(state.name==='HUNTER')state.name=username.toUpperCase();
     saveState();
     hideAuthOverlay();
@@ -3769,6 +3806,7 @@ async function handleLogin(){
     setSession(data);
     currentUser=data.username;
     state=loadState();
+    await pullCloudProfile(); // overwrite local state with server truth if present
     if(window.loadUserPhoto)window.loadUserPhoto();
     hideAuthOverlay();
     showToast('WELCOME BACK, '+data.username.toUpperCase(),'success');
@@ -3778,9 +3816,9 @@ async function handleLogin(){
   }catch(e){errEl.textContent='Cannot reach server. Check your connection.';}
 }
 
-function logOut(){
+async function logOut(){
   if(!confirm('Log out of the current hunter account?'))return;
-  saveState();
+  await pushCloudProfile(); // force immediate flush, bypass debounce
   clearSession();
   currentUser=null;
   if(window.clearPhoto)window.clearPhoto();
@@ -3797,7 +3835,9 @@ document.getElementById('signupBtn').addEventListener('click',handleSignup);
 document.getElementById('logoutBtn').addEventListener('click',logOut);
 ['loginUsername','loginPassword'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')handleLogin();});});
 ['signupUsername','signupEmail','signupPassword','signupConfirm'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')handleSignup();});});
-
+   
+document.addEventListener('visibilitychange', function(){ if(document.hidden) pushCloudProfile(); });
+window.addEventListener('beforeunload', function(){ pushCloudProfile(); });
 // ═══════════════════════════════════════════════════════
 // QUEST CONTROLS
 // ═══════════════════════════════════════════════════════
