@@ -2246,7 +2246,7 @@ function getRD(lvl){for(var i=0;i<RANK_DATA.length;i++)if(lvl>=RANK_DATA[i].min&
 function xpFor(lvl){return Math.round(100*Math.pow(1.15,lvl-1));}
 function todayStr(){return new Date().toDateString();}
 function pad2(n){return String(n).padStart(2,'0');}
-function getDungeonMult(){if(!state.dungeon)return 1.0;var d=DUNGEONS[state.dungeon.type];return d?d.xpMult:1.0;}
+function getDungeonMult(){if(!state.dungeon||!dungeonEntered)return 1.0;var d=DUNGEONS[state.dungeon.type];return d?d.xpMult:1.0;}
 function getPoolItem(id){return GACHA_POOL.find(function(p){return p.id===id;});}
 function getEquippedModifierTotal(kind){
   var total=0,eq=state.equipped||{};
@@ -2805,7 +2805,7 @@ function renderDungeonPane(){
       +'<div class="db-type" style="color:'+d.color+';">⚠ '+d.type+' DETECTED</div>'
       +'<div class="db-name">'+d.icon+' '+d.name+'</div>'
       +'<div class="db-desc">'+d.desc+'</div>'
-      +'<div class="db-bonus">⚡ XP MULTIPLIER: '+d.xpMult.toFixed(2)+'× ACTIVE ON ALL QUESTS TODAY</div>'
+      +'<div class="db-bonus">⚡ XP MULTIPLIER: '+d.xpMult.toFixed(2)+'× — '+(dungeonEntered?'ACTIVE ON ALL QUESTS TODAY':'CLEAR THE GATE TO ACTIVATE')+'</div>'
       +'<div style="margin-top:8px;font-size:9px;color:var(--muted);">DUNGEON QUESTS:</div>'
       +d.quests.map(function(q){return '<div style="font-size:9px;color:var(--text);margin-top:3px;">'+( dungeonEntered?'✓ ':'○ ')+q+'</div>';}).join('')
       +'<button class="db-btn" style="border-color:'+d.color+';color:'+d.color+';" onclick="startDungeonTimer()"'+(dungeonEntered?' disabled':'')+'>'+( dungeonEntered?'[ ✓ DUNGEON ACTIVE — XP BOOSTED ]':'[ ENTER DUNGEON ]')+'</button>'
@@ -4345,7 +4345,17 @@ function initAdminPanel(){
     <div class="adm-sec-title"><span class="adm-sec-icon">👥</span>Unlock Everything</div>
     <button class="adm-btn purple full" id="admArmyBtn">◈ UNLOCK ALL SHADOW ARMY (7)</button>
     <button class="adm-btn gold full" id="admTitlesBtn">◈ UNLOCK ALL TITLES (12)</button>
+    <button class="adm-btn accent full" id="admItemsBtn">◈ UNLOCK ALL ITEMS</button>
     <div class="adm-feedback" id="admUnlockFb"></div>
+  </div>
+
+  <div class="adm-section gold">
+    <div class="adm-sec-title"><span class="adm-sec-icon">💎</span>Grant Essence Stones</div>
+    <div class="adm-row">
+      <input class="adm-input" id="admEssAmt" type="number" value="100" min="1" max="999999">
+      <button class="adm-btn gold" id="admEssBtn">GRANT</button>
+    </div>
+    <div class="adm-feedback" id="admEssFb"></div>
   </div>
 
   <div class="adm-section dz">
@@ -4412,8 +4422,12 @@ function initAdminPanel(){
     var leveled=false;
     while(state.xp>=state.xpNeeded){state.xp-=state.xpNeeded;state.level++;state.xpNeeded=xpFor(state.level);leveled=true;}
     if(leveled)triggerLevelUp(oldLevel,state.level);
+    // Grant proportional stat points across all 5 stats, matching normal quest XP→stat ratio
+    var statGain=Math.max(1,Math.floor(final/50));
+    ['str','agi','vit','int','sen'].forEach(function(k){state.stats[k]=Math.min(999,state.stats[k]+statGain);});
     saveState();updateUI();
-    feedback('admXpFb','✓ +'+final+' XP granted'+(mult>1?' (×'+mult.toFixed(2)+' mult)':''),'');
+    if(typeof renderStats==='function')renderStats();
+    feedback('admXpFb','✓ +'+final+' XP + '+statGain+' to all stats'+(mult>1?' (×'+mult.toFixed(2)+' mult)':''),'');
     checkTitleUnlocks();
   });
 
@@ -4478,19 +4492,17 @@ function initAdminPanel(){
         clearInterval(activeTimer.interval);
         if(onComplete)setTimeout(onComplete,50);
       };
-      // Also mark dungeon as entered
-      window.dungeonEntered=true;
       btn.classList.add('on');
       lbl.textContent='TIMERS: OFF (instant) ✓';
       feedback('admCdFb','✓ Timers skipped — objectives complete instantly','');
     } else {
       // Restore original
       if(window._origOpenTimerModal)window.openTimerModal=window._origOpenTimerModal;
-      window.dungeonEntered=false;
       btn.classList.remove('on');
       lbl.textContent='TIMERS: ON';
       feedback('admCdFb','Timers restored','warn');
     }
+    if(typeof renderDungeonPane==='function')renderDungeonPane();
   });
 
   // ── FORCE DUNGEON TYPE ───────────────────────────────
@@ -4548,6 +4560,30 @@ function initAdminPanel(){
     feedback('admUnlockFb','✓ All '+ALL_TITLES.length+' titles unlocked'+( added?' ('+added+' new)':''),'');
   });
 
+  // ── UNLOCK ALL ITEMS ──────────────────────────────────
+  document.getElementById('admItemsBtn').addEventListener('click',function(){
+    var added=0;
+    state.inventory=state.inventory||[];
+    GACHA_POOL.forEach(function(item){
+      if(!state.inventory.some(function(e){return e.itemId===item.id;})){
+        state.inventory.unshift({itemId:item.id,qty:1,acquired:new Date().toLocaleDateString()});
+        added++;
+      }
+    });
+    saveState();
+    if(typeof renderInventoryPane==='function')renderInventoryPane();
+    feedback('admUnlockFb','✓ All '+GACHA_POOL.length+' items unlocked'+(added?' ('+added+' new)':''),'');
+  });
+
+  // ── GRANT ESSENCE STONES ──────────────────────────────
+  document.getElementById('admEssBtn').addEventListener('click',function(){
+    var amt=parseInt(document.getElementById('admEssAmt').value)||0;
+    if(amt<=0){feedback('admEssFb','Enter a positive amount','err');return;}
+    state.essenceStones=(state.essenceStones||0)+amt;
+    saveState();updateUI();
+    feedback('admEssFb','✓ +'+amt+' 💎 essence stones granted','');
+  });
+
   // ── RESET TO DEFAULT STATE ───────────────────────────
   var resetPending=false;
   document.getElementById('admResetBtn').addEventListener('click',function(){
@@ -4578,6 +4614,9 @@ function initAdminPanel(){
     saveState();
     if(typeof generateDailyQuests==='function')generateDailyQuests();
     updateUI();
+    if(typeof renderQuests==='function')renderQuests();
+    if(typeof renderStats==='function')renderStats();
+    if(typeof computeStreak==='function')computeStreak().then(function(sd){updateStreakBar(sd);});
     document.getElementById('admResetBtn').textContent='[ ⚠ RESET TO DEFAULT STATE ]';
     feedback('admResetFb','✓ State reset to default','warn');
   });
@@ -5079,7 +5118,6 @@ function initAdminPanel(){
     system: {
       tabs: [
         { id: 'quests',    label: 'Quests',    icon: '⚔️' },
-        { id: 'guild',     label: 'Guild',     icon: '🏰' },
         { id: 'shadow',    label: 'Army',      icon: '👥' },
         { id: 'gacha',     label: 'Gacha',     icon: '🎁' },
         { id: 'inventory', label: 'Inventory', icon: '📦' }
@@ -5088,7 +5126,8 @@ function initAdminPanel(){
     world: {
       tabs: [
         { id: 'story',   label: 'Story',   icon: '📖' },
-        { id: 'dungeon', label: 'Dungeon', icon: '⚡' }
+        { id: 'dungeon', label: 'Dungeon', icon: '⚡' },
+        { id: 'guild',   label: 'Guild',   icon: '🏰' }
       ]
     },
     profile: {
